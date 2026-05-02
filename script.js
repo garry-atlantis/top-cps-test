@@ -181,6 +181,18 @@ function init() {
         updateMuteButton();
     });
 
+    // Changelog modal
+    const changelogBtn = document.getElementById('changelog-btn');
+    const changelogModal = document.getElementById('changelog-modal');
+    const changelogClose = document.getElementById('changelog-close');
+    if (changelogBtn) {
+        changelogBtn.addEventListener('click', () => changelogModal.classList.add('open'));
+        changelogClose.addEventListener('click', () => changelogModal.classList.remove('open'));
+        changelogModal.addEventListener('click', (e) => {
+            if (e.target === changelogModal) changelogModal.classList.remove('open');
+        });
+    }
+
     // Force rename if registered name is inappropriate
     if (state.registeredName && isInappropriateName(state.registeredName)) {
         forceInappropriateRename();

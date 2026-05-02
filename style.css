@@ -66,6 +66,150 @@ body {
     opacity: 0.55;
 }
 
+#changelog-btn {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: #e8e8e8;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#changelog-btn:hover {
+    border-color: rgba(240, 192, 64, 0.5);
+    background: rgba(240, 192, 64, 0.1);
+}
+
+/* Changelog Modal */
+#changelog-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+}
+
+#changelog-modal.open {
+    display: flex;
+}
+
+#changelog-box {
+    background: #1a1f26;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: clSlideIn 0.25s ease-out;
+}
+
+@keyframes clSlideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+#changelog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#changelog-header h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    color: #f0c040;
+}
+
+#changelog-close {
+    background: transparent;
+    border: none;
+    color: #7a8a9a;
+    font-size: 1.8rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+#changelog-close:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #e8e8e8;
+}
+
+#changelog-list {
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.cl-entry {
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cl-entry:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.cl-version {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.05rem;
+    color: #3498db;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cl-date {
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.75rem;
+    color: #5a6a7a;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.cl-entry ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.cl-entry li {
+    font-size: 0.88rem;
+    color: #c8d0d8;
+    line-height: 1.6;
+    padding: 4px 0;
+}
+
+#changelog-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+#changelog-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
 #kbd-hint {
     font-size: 0.7rem;
     color: #5a6a7a;
@@ -1201,6 +1345,7 @@ body {
     #reaction-text { font-size: 1.5rem; }
     .reaction-ready #reaction-text { font-size: 2rem; }
     #mute-btn { width: 36px; height: 36px; font-size: 1rem; }
+    #changelog-btn { width: 36px; height: 36px; font-size: 1rem; }
     #header h1 { font-size: 1.6rem; }
     #kbd-hint { display: none; }
     .rh-value { font-size: 0.75rem; }
