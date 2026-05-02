@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPS & Reaksiyon Testi</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header id="header">
+            <h1>⚡ CPS TEST ⚡</h1>
+        </header>
+
+        <!-- Game Type Selector -->
+        <div id="game-type-selector">
+            <button class="game-type-btn active" data-type="cps">CPS Testi</button>
+            <button class="game-type-btn" data-type="reaction">Reaksiyon Testi</button>
+        </div>
+
+        <!-- CPS Game Section -->
+        <div id="cps-section">
+            <!-- CPS Labels -->
+            <div id="cps-labels">
+                <div class="cps-badge max-cps">
+                    <span class="cps-label">MAKS CPS</span>
+                    <span id="max-cps-value" class="cps-value">0</span>
+                </div>
+                <div class="cps-badge current-cps">
+                    <span class="cps-label">AKTİF CPS</span>
+                    <span id="current-cps-value" class="cps-value">0</span>
+                </div>
+            </div>
+
+            <!-- Click Zone -->
+            <div id="click-zone">
+                <div id="click-button">
+                    <span class="click-text">TIKLA!</span>
+                    <span id="click-count" class="click-count">0 tıklama</span>
+                </div>
+                <div id="click-ripple-container"></div>
+            </div>
+
+            <!-- Stats Panel -->
+            <div id="stats-panel">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Maks CPS</span>
+                        <span id="stat-max" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Aktif CPS</span>
+                        <span id="stat-current" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Toplam Tıklama</span>
+                        <span id="stat-total" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">En İyi Seri</span>
+                        <span id="stat-streak" class="stat-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timer Bar -->
+            <div id="timer-section">
+                <div id="timer-bar-container">
+                    <div id="timer-bar"></div>
+                </div>
+                <div id="timer-text">Başlamak için tıkla!</div>
+            </div>
+
+            <!-- Mode Selector -->
+            <div id="mode-selector">
+                <button class="mode-btn" data-time="1">1sn</button>
+                <button class="mode-btn active" data-time="5">5sn</button>
+                <button class="mode-btn" data-time="10">10sn</button>
+                <button class="mode-btn" data-time="30">30sn</button>
+            </div>
+        </div>
+
+        <!-- Reaction Game Section -->
+        <div id="reaction-section" style="display:none">
+            <div id="reaction-result-display">
+                <span class="reaction-result-label">Son Reaksiyon</span>
+                <span id="reaction-result-value" class="reaction-result-value">—</span>
+                <span class="reaction-result-unit">ms</span>
+            </div>
+
+            <div id="reaction-zone">
+                <div id="reaction-box">
+                    <span id="reaction-text">Hazır mısın?</span>
+                    <span id="reaction-sub" class="click-count">Kutucuğa tıkla</span>
+                </div>
+            </div>
+
+            <div id="reaction-stats-panel">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">En İyi</span>
+                        <span id="stat-reaction-best" class="stat-value">—</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Ortalama</span>
+                        <span id="stat-reaction-avg" class="stat-value">—</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Tur</span>
+                        <span id="stat-reaction-round" class="stat-value">0/5</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">En Kötü</span>
+                        <span id="stat-reaction-worst" class="stat-value">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Player Name -->
+        <div id="player-name-container">
+            <input type="text" id="player-name-input" placeholder="İsmini yaz..." maxlength="16" value="" readonly>
+            <button id="change-name-btn" title="İsim değiştir">✏️</button>
+        </div>
+
+        <!-- Name Confirm Modal -->
+        <div id="name-modal">
+            <div id="name-modal-box">
+                <p id="name-modal-text">Bu isim <b>değiştirilemez</b>. Emin misin?</p>
+                <input type="text" id="name-modal-input" maxlength="16" placeholder="Yeni isim...">
+                <div id="name-modal-btns">
+                    <button id="name-modal-confirm">✓ Onayla</button>
+                    <button id="name-modal-cancel">✕ İptal</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons Row -->
+        <div id="btn-row">
+            <button id="leaderboard-btn">🏆 Sıralama</button>
+            <button id="reset-btn">🔄 Sıfırla</button>
+        </div>
+
+        <!-- Leaderboard Overlay -->
+        <div id="leaderboard-overlay">
+            <div id="leaderboard-panel">
+                <div id="leaderboard-header">
+                    <h2>🏆 Sıralama</h2>
+                    <button id="leaderboard-close">✕</button>
+                </div>
+                <div id="leaderboard-tabs">
+                    <button class="lb-tab active" data-type="cps">CPS</button>
+                    <button class="lb-tab" data-type="reaction">Reaksiyon</button>
+                </div>
+                <div id="leaderboard-list">
+                    <div class="lb-loading">Yükleniyor...</div>
+                </div>
+                <button id="submit-score-btn">Skorumu Gönder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Countdown Overlay -->
+    <div id="countdown-overlay">
+        <span id="countdown-number"></span>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
