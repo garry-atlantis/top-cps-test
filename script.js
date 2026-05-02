@@ -40,6 +40,16 @@ const state = {
     lastReactionTime: 0,
     muted: localStorage.getItem('muted') === 'true',
     forceRename: false,
+    // Accuracy
+    accuracyState: 'idle', accuracyHits: 0, accuracyMisses: 0,
+    accuracyTimer: null, accuracyEndTime: 0, accuracyDuration: 20,
+    accuracyBest: parseInt(localStorage.getItem('accuracyBest')) || 0,
+    lastAccuracyScore: 0, lastAccuracyAccuracy: 0,
+    // Number game
+    numberState: 'idle', numberNext: 1, numberStartTime: 0,
+    numberOrder: [], numberTimerInterval: null,
+    numberBest: parseInt(localStorage.getItem('numberBest')) || 0,
+    lastNumberTime: 0,
 };
 
 // ====== DOM ======
@@ -84,6 +94,26 @@ const statReactionRound = document.getElementById('stat-reaction-round');
 const statReactionWorst = document.getElementById('stat-reaction-worst');
 const muteBtn = document.getElementById('mute-btn');
 const reactionHistorySlots = document.querySelectorAll('.reaction-history-slot');
+
+// Accuracy
+const accuracySection = document.getElementById('accuracy-section');
+const accuracyZone = document.getElementById('accuracy-zone');
+const accuracyTarget = document.getElementById('accuracy-target');
+const accuracyMessage = document.getElementById('accuracy-message');
+const accHits = document.getElementById('acc-hits');
+const accMisses = document.getElementById('acc-misses');
+const accTimer = document.getElementById('acc-timer');
+const statAccBest = document.getElementById('stat-acc-best');
+const statAccPct = document.getElementById('stat-acc-pct');
+
+// Number game
+const numberSection = document.getElementById('number-section');
+const numberGrid = document.getElementById('number-grid');
+const numberStartBtn = document.getElementById('number-start-btn');
+const numNext = document.getElementById('num-next');
+const numTimer = document.getElementById('num-timer');
+const statNumBest = document.getElementById('stat-num-best');
+const statNumLast = document.getElementById('stat-num-last');
 
 // ====== SOUND ======
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -235,40 +265,52 @@ function initAdminPanel() {
     });
 }
 
+const ADMIN_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', number: 'Sayı' };
+
 async function renderAdminList(tabType, search = '') {
     const adminList = document.getElementById('admin-list');
     adminList.innerHTML = '<div style="text-align:center;color:#7a8a9a;padding:20px">Yükleniyor...</div>';
     const data = await fetchLeaderboard();
-    let entries;
+    let entries = [];
+    let scoreFmt = () => '';
+
     if (tabType === 'cps') {
         const cpsEntries = data.filter(e => !e.type || e.type === 'cps');
-        const bestPerPlayer = {};
-        cpsEntries.forEach(e => {
-            const key = e.name.toLowerCase();
-            if (!bestPerPlayer[key] || e.cps > bestPerPlayer[key].cps) bestPerPlayer[key] = e;
-        });
-        entries = Object.values(bestPerPlayer).sort((a, b) => b.cps - a.cps);
-    } else {
-        const reactionEntries = data.filter(e => e.type === 'reaction' && e.time);
-        const bestPerPlayer = {};
-        reactionEntries.forEach(e => {
-            const key = e.name.toLowerCase();
-            if (!bestPerPlayer[key] || e.time < bestPerPlayer[key].time) bestPerPlayer[key] = e;
-        });
-        entries = Object.values(bestPerPlayer).sort((a, b) => a.time - b.time);
+        const best = {};
+        cpsEntries.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || (e.cps || 0) > (best[k].cps || 0)) best[k] = e; });
+        entries = Object.values(best).sort((a, b) => (b.cps || 0) - (a.cps || 0));
+        scoreFmt = (e) => `${e.cps} CPS`;
+    } else if (tabType === 'reaction') {
+        const r = data.filter(e => e.type === 'reaction' && typeof e.time === 'number');
+        const best = {};
+        r.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.time < best[k].time) best[k] = e; });
+        entries = Object.values(best).sort((a, b) => a.time - b.time);
+        scoreFmt = (e) => `${e.time} ms`;
+    } else if (tabType === 'accuracy') {
+        const a = data.filter(e => e.type === 'accuracy' && typeof e.score === 'number');
+        const best = {};
+        a.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.score > best[k].score) best[k] = e; });
+        entries = Object.values(best).sort((a, b) => b.score - a.score);
+        scoreFmt = (e) => `${e.score} vuruş`;
+    } else if (tabType === 'number') {
+        const n = data.filter(e => e.type === 'number' && typeof e.time === 'number');
+        const best = {};
+        n.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.time < best[k].time) best[k] = e; });
+        entries = Object.values(best).sort((a, b) => a.time - b.time);
+        scoreFmt = (e) => `${(e.time / 1000).toFixed(2)} sn`;
     }
+
     if (search) entries = entries.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
     if (entries.length === 0) {
         adminList.innerHTML = '<div style="text-align:center;color:#7a8a9a;padding:20px">Kayıt bulunamadı</div>';
         return;
     }
     adminList.innerHTML = entries.map((e, i) => {
-        const score = tabType === 'cps' ? `${e.cps} CPS` : `${e.time} ms`;
         const rank = i + 1;
         return `<div class="admin-row">
             <div class="admin-row-info">
                 <span class="admin-row-name">${rank}. ${escapeHtml(e.name)}</span>
-                <span class="admin-row-score">${score}</span>
+                <span class="admin-row-score">${scoreFmt(e)}</span>
             </div>
             <button class="admin-delete-btn" data-name="${escapeHtml(e.name)}">🗑 Sil</button>
         </div>`;
@@ -276,7 +318,7 @@ async function renderAdminList(tabType, search = '') {
     adminList.querySelectorAll('.admin-delete-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             const name = btn.dataset.name;
-            if (!confirm(`"${name}" adlı oyuncunun tüm ${tabType === 'cps' ? 'CPS' : 'Reaksiyon'} skorları silinecek. Emin misin?`)) return;
+            if (!confirm(`"${name}" adlı oyuncunun tüm ${ADMIN_LABELS[tabType]} skorları silinecek. Emin misin?`)) return;
             btn.textContent = 'Siliniyor...'; btn.disabled = true;
             await adminDeletePlayer(name, tabType);
             await renderAdminList(tabType, document.getElementById('admin-search').value);
@@ -289,9 +331,9 @@ async function adminDeletePlayer(name, tabType) {
     const filtered = data.filter(e => {
         const nameMatch = e.name.toLowerCase() === name.toLowerCase();
         if (!nameMatch) return true;
-        if (tabType === 'cps') return e.type === 'reaction';
-        if (tabType === 'reaction') return e.type !== 'reaction';
-        return false;
+        // Keep entries that don't belong to the targeted tab type
+        const eType = e.type || 'cps';
+        return eType !== tabType;
     });
     if (isJsonBinConfigured()) {
         try {
@@ -341,23 +383,45 @@ function forceInappropriateRename() {
 }
 
 // ====== GAME TYPE SELECTOR ======
+const GAME_TITLES = {
+    cps: '⚡ CPS TEST ⚡',
+    reaction: '⚡ REAKSİYON TESTİ ⚡',
+    accuracy: '🎯 DOĞRULUK TESTİ',
+    number: '🔢 SAYI TESTİ',
+};
+
 gameTypeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-        if (state.isRunning || state.isCountdown) return;
+        if (state.isRunning || state.isCountdown || state.accuracyState === 'running' || state.numberState === 'running') return;
         gameTypeBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         state.gameType = btn.dataset.type;
+
+        // Hide all sections
+        cpsSection.style.display = 'none';
+        reactionSection.style.display = 'none';
+        accuracySection.style.display = 'none';
+        numberSection.style.display = 'none';
+
+        // Reset other modes' last scores so submit picks correct one
+        state.lastSessionCps = 0;
+        state.lastReactionTime = 0;
+        state.lastAccuracyScore = 0;
+        state.lastNumberTime = 0;
+
+        document.querySelector('#header h1').textContent = GAME_TITLES[state.gameType];
+
         if (state.gameType === 'cps') {
             cpsSection.style.display = '';
-            reactionSection.style.display = 'none';
-            document.querySelector('#header h1').textContent = '⚡ CPS TEST ⚡';
-            state.lastReactionTime = 0;
-        } else {
-            cpsSection.style.display = 'none';
+        } else if (state.gameType === 'reaction') {
             reactionSection.style.display = '';
-            document.querySelector('#header h1').textContent = '⚡ REAKSİYON TESTİ ⚡';
-            state.lastSessionCps = 0;
             resetReaction();
+        } else if (state.gameType === 'accuracy') {
+            accuracySection.style.display = '';
+            resetAccuracy();
+        } else if (state.gameType === 'number') {
+            numberSection.style.display = '';
+            resetNumber();
         }
     });
 });
@@ -778,23 +842,275 @@ reactionBox.addEventListener('touchstart', (e) => {
 }, { passive: false });
 reactionBox.addEventListener('contextmenu', e => e.preventDefault());
 
+// ====== ACCURACY GAME ======
+function resetAccuracy() {
+    clearInterval(state.accuracyTimer);
+    state.accuracyState = 'idle';
+    state.accuracyHits = 0;
+    state.accuracyMisses = 0;
+    accHits.textContent = '0';
+    accMisses.textContent = '0';
+    accTimer.textContent = state.accuracyDuration;
+    accuracyTarget.style.display = 'none';
+    accuracyZone.classList.remove('active');
+    accuracyMessage.style.display = '';
+    accuracyMessage.textContent = 'Başlamak için kutuya tıkla';
+    statAccBest.textContent = state.accuracyBest ? state.accuracyBest : '—';
+    statAccPct.textContent = '—';
+}
+
+function startAccuracy() {
+    state.accuracyState = 'running';
+    state.accuracyHits = 0;
+    state.accuracyMisses = 0;
+    accHits.textContent = '0';
+    accMisses.textContent = '0';
+    accuracyZone.classList.add('active');
+    accuracyMessage.style.display = 'none';
+    state.accuracyEndTime = Date.now() + state.accuracyDuration * 1000;
+    accTimer.textContent = state.accuracyDuration;
+    spawnAccuracyTarget();
+    state.accuracyTimer = setInterval(() => {
+        const remain = Math.max(0, Math.ceil((state.accuracyEndTime - Date.now()) / 1000));
+        accTimer.textContent = remain;
+        if (remain <= 0) endAccuracy();
+    }, 100);
+}
+
+function spawnAccuracyTarget() {
+    const rect = accuracyZone.getBoundingClientRect();
+    const size = 56;
+    const margin = size / 2 + 8;
+    const x = margin + Math.random() * (rect.width - margin * 2);
+    const y = margin + Math.random() * (rect.height - margin * 2);
+    accuracyTarget.style.left = x + 'px';
+    accuracyTarget.style.top = y + 'px';
+    accuracyTarget.style.display = 'block';
+    // Restart pop animation
+    accuracyTarget.style.animation = 'none';
+    void accuracyTarget.offsetWidth;
+    accuracyTarget.style.animation = '';
+}
+
+function endAccuracy() {
+    clearInterval(state.accuracyTimer);
+    state.accuracyState = 'ended';
+    accuracyTarget.style.display = 'none';
+    accuracyZone.classList.remove('active');
+    accuracyMessage.style.display = '';
+    accuracyMessage.textContent = `Bitti! ${state.accuracyHits} vuruş — Tekrar için tıkla`;
+    const total = state.accuracyHits + state.accuracyMisses;
+    const pct = total > 0 ? Math.round((state.accuracyHits / total) * 100) : 0;
+    statAccPct.textContent = pct + '%';
+    state.lastAccuracyScore = state.accuracyHits;
+    state.lastAccuracyAccuracy = pct;
+    if (state.accuracyHits > state.accuracyBest) {
+        state.accuracyBest = state.accuracyHits;
+        localStorage.setItem('accuracyBest', state.accuracyHits);
+        statAccBest.textContent = state.accuracyHits;
+    }
+    // Auto-submit if registered
+    const name = playerNameInput.value.trim();
+    if (name && state.registeredName && state.accuracyHits > 0) {
+        autoSubmitAccuracy(name, state.accuracyHits);
+    }
+    playEndSound();
+}
+
+function handleAccuracyClick(e) {
+    if (state.accuracyState === 'idle' || state.accuracyState === 'ended') {
+        startAccuracy();
+        return;
+    }
+    if (state.accuracyState !== 'running') return;
+    // Determine if click was on target
+    const targetRect = accuracyTarget.getBoundingClientRect();
+    const cx = e.clientX, cy = e.clientY;
+    const tcx = targetRect.left + targetRect.width / 2;
+    const tcy = targetRect.top + targetRect.height / 2;
+    const dist = Math.hypot(cx - tcx, cy - tcy);
+    if (dist <= targetRect.width / 2 && accuracyTarget.style.display !== 'none') {
+        state.accuracyHits++;
+        accHits.textContent = state.accuracyHits;
+        spawnAccuracyTarget();
+    } else {
+        state.accuracyMisses++;
+        accMisses.textContent = state.accuracyMisses;
+    }
+}
+
+accuracyZone.addEventListener('mousedown', handleAccuracyClick);
+accuracyZone.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    handleAccuracyClick({ clientX: t.clientX, clientY: t.clientY });
+}, { passive: false });
+accuracyZone.addEventListener('contextmenu', e => e.preventDefault());
+
+// ====== NUMBER GAME ======
+function resetNumber() {
+    clearInterval(state.numberTimerInterval);
+    state.numberState = 'idle';
+    state.numberNext = 1;
+    numNext.textContent = '1';
+    numTimer.textContent = '0.00';
+    numberStartBtn.disabled = false;
+    numberStartBtn.textContent = 'Başla';
+    statNumBest.textContent = state.numberBest ? (state.numberBest / 1000).toFixed(2) + 's' : '—';
+    statNumLast.textContent = state.lastNumberTime ? (state.lastNumberTime / 1000).toFixed(2) + 's' : '—';
+    // Render shuffled grid (gray, disabled)
+    renderNumberGrid(true);
+}
+
+function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function renderNumberGrid(disabled) {
+    state.numberOrder = shuffleArray(Array.from({ length: 25 }, (_, i) => i + 1));
+    numberGrid.innerHTML = state.numberOrder.map(n =>
+        `<div class="num-cell ${disabled ? 'disabled' : ''}" data-num="${n}">${n}</div>`
+    ).join('');
+    numberGrid.querySelectorAll('.num-cell').forEach(cell => {
+        cell.addEventListener('click', () => handleNumberClick(parseInt(cell.dataset.num), cell));
+        cell.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleNumberClick(parseInt(cell.dataset.num), cell);
+        }, { passive: false });
+    });
+}
+
+function startNumberGame() {
+    state.numberState = 'running';
+    state.numberNext = 1;
+    numNext.textContent = '1';
+    state.numberStartTime = Date.now();
+    numberStartBtn.disabled = true;
+    numberStartBtn.textContent = 'Çalışıyor...';
+    renderNumberGrid(false);
+    state.numberTimerInterval = setInterval(() => {
+        const elapsed = (Date.now() - state.numberStartTime) / 1000;
+        numTimer.textContent = elapsed.toFixed(2);
+    }, 50);
+}
+
+function handleNumberClick(n, cell) {
+    if (state.numberState !== 'running') return;
+    if (n === state.numberNext) {
+        cell.classList.add('correct', 'disabled');
+        state.numberNext++;
+        if (state.numberNext > 25) {
+            endNumberGame();
+        } else {
+            numNext.textContent = state.numberNext;
+        }
+    } else {
+        cell.classList.remove('wrong');
+        void cell.offsetWidth;
+        cell.classList.add('wrong');
+        setTimeout(() => cell.classList.remove('wrong'), 300);
+    }
+}
+
+function endNumberGame() {
+    clearInterval(state.numberTimerInterval);
+    state.numberState = 'ended';
+    const elapsed = Date.now() - state.numberStartTime;
+    state.lastNumberTime = elapsed;
+    numTimer.textContent = (elapsed / 1000).toFixed(2);
+    numberStartBtn.disabled = false;
+    numberStartBtn.textContent = 'Tekrar Oyna';
+    statNumLast.textContent = (elapsed / 1000).toFixed(2) + 's';
+    if (!state.numberBest || elapsed < state.numberBest) {
+        state.numberBest = elapsed;
+        localStorage.setItem('numberBest', elapsed);
+        statNumBest.textContent = (elapsed / 1000).toFixed(2) + 's';
+    }
+    playEndSound();
+    const name = playerNameInput.value.trim();
+    if (name && state.registeredName) {
+        autoSubmitNumber(name, elapsed);
+    }
+}
+
+numberStartBtn.addEventListener('click', () => {
+    if (state.numberState === 'running') return;
+    startNumberGame();
+});
+
+// ====== AUTO SUBMIT (accuracy/number) ======
+async function autoSubmitAccuracy(name, hits) {
+    const data = await fetchLeaderboard();
+    const prevEntries = data.filter(e => e.type === 'accuracy' && e.name.toLowerCase() === name.toLowerCase());
+    const prevBest = prevEntries.length > 0 ? Math.max(...prevEntries.map(e => e.score || 0)) : 0;
+    const isNewBest = hits > prevBest;
+    const success = await submitScore(name, hits, null, 'accuracy');
+    if (success && isNewBest) {
+        const all = state.leaderboardData || [];
+        const accEntries = all.filter(e => e.type === 'accuracy');
+        const bestPerPlayer = {};
+        accEntries.forEach(e => {
+            const k = e.name.toLowerCase();
+            if (!bestPerPlayer[k] || (e.score || 0) > (bestPerPlayer[k].score || 0)) bestPerPlayer[k] = e;
+        });
+        const sorted = Object.values(bestPerPlayer).sort((a, b) => (b.score || 0) - (a.score || 0));
+        const rank = sorted.findIndex(e => e.name.toLowerCase() === name.toLowerCase()) + 1;
+        if (rank > 0) showRankNotification(rank, 'accuracy');
+    }
+}
+
+async function autoSubmitNumber(name, time) {
+    const data = await fetchLeaderboard();
+    const prevEntries = data.filter(e => e.type === 'number' && e.name.toLowerCase() === name.toLowerCase());
+    const prevBest = prevEntries.length > 0 ? Math.min(...prevEntries.map(e => e.time)) : Infinity;
+    const isNewBest = time < prevBest;
+    const success = await submitScore(name, time, null, 'number');
+    if (success && isNewBest) {
+        const all = state.leaderboardData || [];
+        const numEntries = all.filter(e => e.type === 'number');
+        const bestPerPlayer = {};
+        numEntries.forEach(e => {
+            const k = e.name.toLowerCase();
+            if (!bestPerPlayer[k] || e.time < bestPerPlayer[k].time) bestPerPlayer[k] = e;
+        });
+        const sorted = Object.values(bestPerPlayer).sort((a, b) => a.time - b.time);
+        const rank = sorted.findIndex(e => e.name.toLowerCase() === name.toLowerCase()) + 1;
+        if (rank > 0) showRankNotification(rank, 'number');
+    }
+}
+
 // ====== PREVENT ZOOM ======
 document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 
 // ====== KEYBOARD ======
+function resetCurrentGame() {
+    if (state.gameType === 'cps') resetGame();
+    else if (state.gameType === 'reaction') resetReaction();
+    else if (state.gameType === 'accuracy') resetAccuracy();
+    else if (state.gameType === 'number') resetNumber();
+}
+
 document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT') return;
     if (e.code === 'Space') {
         e.preventDefault();
         if (state.gameType === 'cps') {
             if (state.gameEnded) resetGame(); else handleClick({ clientX: 0, clientY: 0 });
-        } else handleReactionClick(e);
+        } else if (state.gameType === 'reaction') {
+            handleReactionClick(e);
+        } else if (state.gameType === 'number' && state.numberState !== 'running') {
+            startNumberGame();
+        }
     }
-    if (e.code === 'KeyR') { e.preventDefault(); if (state.gameType === 'cps') resetGame(); else resetReaction(); }
+    if (e.code === 'KeyR') { e.preventDefault(); resetCurrentGame(); }
 });
 
 // ====== RESET BUTTON ======
-resetBtn.addEventListener('click', () => { if (state.gameType === 'cps') resetGame(); else resetReaction(); });
+resetBtn.addEventListener('click', resetCurrentGame);
 
 // ====== LEADERBOARD ======
 function isJsonBinConfigured() {
@@ -834,7 +1150,8 @@ async function submitScore(name, value, mode, type) {
     }
     const entry = { name, type, date: new Date().toISOString() };
     if (type === 'cps') { entry.cps = value; entry.mode = mode; }
-    else { entry.time = value; }
+    else if (type === 'accuracy') { entry.score = value; }
+    else { entry.time = value; }  // reaction & number
     if (!isJsonBinConfigured()) {
         const data = getLocalLeaderboard();
         upsertScore(data, entry, type);
@@ -860,12 +1177,21 @@ async function submitScore(name, value, mode, type) {
 }
 
 function upsertScore(data, entry, type) {
+    const lname = entry.name.toLowerCase();
     if (type === 'cps') {
-        const idx = data.findIndex(e => e.type === 'cps' && e.name.toLowerCase() === entry.name.toLowerCase() && e.mode == entry.mode);
+        const idx = data.findIndex(e => e.type === 'cps' && e.name.toLowerCase() === lname && e.mode == entry.mode);
         if (idx >= 0) { if (entry.cps > data[idx].cps) { data[idx].cps = entry.cps; data[idx].date = entry.date; } }
         else data.push(entry);
-    } else {
-        const idx = data.findIndex(e => e.type === 'reaction' && e.name.toLowerCase() === entry.name.toLowerCase());
+    } else if (type === 'reaction') {
+        const idx = data.findIndex(e => e.type === 'reaction' && e.name.toLowerCase() === lname);
+        if (idx >= 0) { if (entry.time < data[idx].time) { data[idx].time = entry.time; data[idx].date = entry.date; } }
+        else data.push(entry);
+    } else if (type === 'accuracy') {
+        const idx = data.findIndex(e => e.type === 'accuracy' && e.name.toLowerCase() === lname);
+        if (idx >= 0) { if ((entry.score || 0) > (data[idx].score || 0)) { data[idx].score = entry.score; data[idx].date = entry.date; } }
+        else data.push(entry);
+    } else if (type === 'number') {
+        const idx = data.findIndex(e => e.type === 'number' && e.name.toLowerCase() === lname);
         if (idx >= 0) { if (entry.time < data[idx].time) { data[idx].time = entry.time; data[idx].date = entry.date; } }
         else data.push(entry);
     }
@@ -873,36 +1199,60 @@ function upsertScore(data, entry, type) {
 
 function renderLeaderboard(data, tabType) {
     const playerName = playerNameInput.value.trim().toLowerCase();
-    // Filter out entries with inappropriate names
     data = data.filter(e => !isInappropriateName(e.name));
+
+    let entries = [];
+    let scoreLabel = '';
+    let scoreFormat = (e) => '';
+
     if (tabType === 'cps') {
-        // Include entries with type='cps' or no type (legacy data)
+        // Legacy entries (no type) treated as cps
         const cpsEntries = data.filter(e => !e.type || e.type === 'cps');
         const bestPerPlayer = {};
         cpsEntries.forEach(e => {
             const key = e.name.toLowerCase();
-            if (!bestPerPlayer[key] || e.cps > bestPerPlayer[key].cps) bestPerPlayer[key] = e;
+            if (!bestPerPlayer[key] || (e.cps || 0) > (bestPerPlayer[key].cps || 0)) bestPerPlayer[key] = e;
         });
-        const sorted = Object.values(bestPerPlayer).sort((a, b) => b.cps - a.cps);
-        if (sorted.length === 0) { leaderboardList.innerHTML = '<div class="lb-empty">Henüz skor yok! 🎮</div>'; return; }
-        leaderboardList.innerHTML = sorted.map((entry, i) => {
-            const rank = i + 1;
-            const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
-            const isSelf = entry.name.toLowerCase() === playerName;
-            const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
-            return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rankEmoji}</div><div class="lb-name">${escapeHtml(entry.name)}</div><div class="lb-score">${entry.cps} <span>CPS</span></div></div>`;
-        }).join('');
-    } else {
-        const sorted = data.filter(e => e.type === 'reaction' && e.time).sort((a, b) => a.time - b.time);
-        if (sorted.length === 0) { leaderboardList.innerHTML = '<div class="lb-empty">Henüz skor yok! 🎮</div>'; return; }
-        leaderboardList.innerHTML = sorted.map((entry, i) => {
-            const rank = i + 1;
-            const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
-            const isSelf = entry.name.toLowerCase() === playerName;
-            const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
-            return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rankEmoji}</div><div class="lb-name">${escapeHtml(entry.name)}</div><div class="lb-score">${entry.time} <span>ms</span></div></div>`;
-        }).join('');
+        entries = Object.values(bestPerPlayer).sort((a, b) => (b.cps || 0) - (a.cps || 0));
+        scoreLabel = 'CPS';
+        scoreFormat = (e) => `${e.cps} <span>CPS</span>`;
+    } else if (tabType === 'reaction') {
+        const r = data.filter(e => e.type === 'reaction' && typeof e.time === 'number');
+        const bestPerPlayer = {};
+        r.forEach(e => {
+            const key = e.name.toLowerCase();
+            if (!bestPerPlayer[key] || e.time < bestPerPlayer[key].time) bestPerPlayer[key] = e;
+        });
+        entries = Object.values(bestPerPlayer).sort((a, b) => a.time - b.time);
+        scoreFormat = (e) => `${e.time} <span>ms</span>`;
+    } else if (tabType === 'accuracy') {
+        const a = data.filter(e => e.type === 'accuracy' && typeof e.score === 'number');
+        const bestPerPlayer = {};
+        a.forEach(e => {
+            const key = e.name.toLowerCase();
+            if (!bestPerPlayer[key] || e.score > bestPerPlayer[key].score) bestPerPlayer[key] = e;
+        });
+        entries = Object.values(bestPerPlayer).sort((a, b) => b.score - a.score);
+        scoreFormat = (e) => `${e.score} <span>vuruş</span>`;
+    } else if (tabType === 'number') {
+        const n = data.filter(e => e.type === 'number' && typeof e.time === 'number');
+        const bestPerPlayer = {};
+        n.forEach(e => {
+            const key = e.name.toLowerCase();
+            if (!bestPerPlayer[key] || e.time < bestPerPlayer[key].time) bestPerPlayer[key] = e;
+        });
+        entries = Object.values(bestPerPlayer).sort((a, b) => a.time - b.time);
+        scoreFormat = (e) => `${(e.time / 1000).toFixed(2)} <span>sn</span>`;
     }
+
+    if (entries.length === 0) { leaderboardList.innerHTML = '<div class="lb-empty">Henüz skor yok! 🎮</div>'; return; }
+    leaderboardList.innerHTML = entries.map((entry, i) => {
+        const rank = i + 1;
+        const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+        const isSelf = entry.name.toLowerCase() === playerName;
+        const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+        return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rankEmoji}</div><div class="lb-name">${escapeHtml(entry.name)}</div><div class="lb-score">${scoreFormat(entry)}</div></div>`;
+    }).join('');
 }
 
 function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
@@ -940,46 +1290,32 @@ submitScoreBtn.addEventListener('click', async () => {
     const name = playerNameInput.value.trim();
     if (!name) { playerNameInput.focus(); playerNameInput.style.borderColor = '#ff6b6b'; setTimeout(() => playerNameInput.style.borderColor = '', 1500); return; }
 
-    if (state.gameType === 'cps') {
-        if (state.lastSessionCps <= 0) {
-            submitScoreBtn.textContent = 'Önce test yap!'; submitScoreBtn.style.opacity = '0.6';
-            setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.style.opacity = ''; }, 2500); return;
-        }
-        if (!state.registeredName) {
-            state.registeredName = name; localStorage.setItem('registeredName', name);
-            playerNameInput.readOnly = true; state.nameChangeUsed = true;
-            localStorage.setItem('nameChangeUsed', 'true'); changeNameBtn.style.display = 'none';
-        }
-        submitScoreBtn.disabled = true; submitScoreBtn.textContent = 'Gönderiliyor...';
-        const success = await submitScore(name, state.lastSessionCps, state.lastSessionMode, 'cps');
-        if (success) {
-            submitScoreBtn.textContent = '✓ CPS gönderildi!';
-            lbTabs.forEach(t => t.classList.toggle('active', t.dataset.type === 'cps'));
-            state.leaderboardTab = 'cps';
-            renderLeaderboard(state.leaderboardData || [], 'cps');
-            setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.disabled = false; }, 2000);
-        } else { submitScoreBtn.textContent = 'Hata! Tekrar Dene'; submitScoreBtn.disabled = false; }
-    } else {
-        if (state.lastReactionTime <= 0) {
-            submitScoreBtn.textContent = 'Önce test yap!'; submitScoreBtn.style.opacity = '0.6';
-            setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.style.opacity = ''; }, 2500); return;
-        }
-        if (!state.registeredName) {
-            state.registeredName = name; localStorage.setItem('registeredName', name);
-            playerNameInput.readOnly = true; state.nameChangeUsed = true;
-            localStorage.setItem('nameChangeUsed', 'true'); changeNameBtn.style.display = 'none';
-        }
-        submitScoreBtn.disabled = true; submitScoreBtn.textContent = 'Gönderiliyor...';
-        const bestTime = Math.min(...state.reactionTimes);
-        const success = await submitScore(name, bestTime, null, 'reaction');
-        if (success) {
-            submitScoreBtn.textContent = '✓ Reaksiyon gönderildi!';
-            lbTabs.forEach(t => t.classList.toggle('active', t.dataset.type === 'reaction'));
-            state.leaderboardTab = 'reaction';
-            renderLeaderboard(state.leaderboardData || [], 'reaction');
-            setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.disabled = false; }, 2000);
-        } else { submitScoreBtn.textContent = 'Hata! Tekrar Dene'; submitScoreBtn.disabled = false; }
+    // Determine value based on current game type
+    let value = 0, type = state.gameType, label = '', mode = null;
+    if (type === 'cps') { value = state.lastSessionCps; mode = state.lastSessionMode; label = 'CPS'; }
+    else if (type === 'reaction') { value = state.reactionTimes.length ? Math.min(...state.reactionTimes) : 0; label = 'Reaksiyon'; }
+    else if (type === 'accuracy') { value = state.lastAccuracyScore; label = 'Doğruluk'; }
+    else if (type === 'number') { value = state.lastNumberTime; label = 'Sayı'; }
+
+    if (!value || value <= 0) {
+        submitScoreBtn.textContent = 'Önce test yap!'; submitScoreBtn.style.opacity = '0.6';
+        setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.style.opacity = ''; }, 2500); return;
     }
+    if (!state.registeredName) {
+        state.registeredName = name; localStorage.setItem('registeredName', name);
+        playerNameInput.readOnly = true; state.nameChangeUsed = true;
+        localStorage.setItem('nameChangeUsed', 'true'); changeNameBtn.style.display = 'none';
+        updateChangelogVisibility();
+    }
+    submitScoreBtn.disabled = true; submitScoreBtn.textContent = 'Gönderiliyor...';
+    const success = await submitScore(name, value, mode, type);
+    if (success) {
+        submitScoreBtn.textContent = `✓ ${label} gönderildi!`;
+        lbTabs.forEach(t => t.classList.toggle('active', t.dataset.type === type));
+        state.leaderboardTab = type;
+        renderLeaderboard(state.leaderboardData || [], type);
+        setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.disabled = false; }, 2000);
+    } else { submitScoreBtn.textContent = 'Hata! Tekrar Dene'; submitScoreBtn.disabled = false; }
 });
 
 // ====== START ======

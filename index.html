@@ -20,8 +20,10 @@
 
         <!-- Game Type Selector -->
         <div id="game-type-selector">
-            <button class="game-type-btn active" data-type="cps">CPS Testi</button>
-            <button class="game-type-btn" data-type="reaction">Reaksiyon Testi</button>
+            <button class="game-type-btn active" data-type="cps">CPS</button>
+            <button class="game-type-btn" data-type="reaction">Reaksiyon</button>
+            <button class="game-type-btn" data-type="accuracy">Doğruluk</button>
+            <button class="game-type-btn" data-type="number">Sayı</button>
         </div>
 
         <!-- CPS Game Section -->
@@ -143,6 +145,37 @@
             </div>
         </div>
 
+        <!-- Accuracy Game Section -->
+        <div id="accuracy-section" style="display:none">
+            <div id="accuracy-info">
+                <div class="acc-info-card"><span class="acc-info-label">Vuruş</span><span id="acc-hits" class="acc-info-value">0</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Iska</span><span id="acc-misses" class="acc-info-value">0</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Süre</span><span id="acc-timer" class="acc-info-value">20</span></div>
+            </div>
+            <div id="accuracy-zone">
+                <div id="accuracy-message">Başlamak için kutuya tıkla</div>
+                <div id="accuracy-target"></div>
+            </div>
+            <div id="accuracy-stats">
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">En İyi</span><span id="stat-acc-best" class="stat-value">—</span></div></div>
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">Doğruluk</span><span id="stat-acc-pct" class="stat-value">—</span></div></div>
+            </div>
+        </div>
+
+        <!-- Number Game Section -->
+        <div id="number-section" style="display:none">
+            <div id="number-info">
+                <div class="acc-info-card"><span class="acc-info-label">Sıradaki</span><span id="num-next" class="acc-info-value">1</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Süre</span><span id="num-timer" class="acc-info-value">0.00</span></div>
+            </div>
+            <div id="number-grid"></div>
+            <button id="number-start-btn">Başla</button>
+            <div id="number-stats">
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">En İyi</span><span id="stat-num-best" class="stat-value">—</span></div></div>
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">Son</span><span id="stat-num-last" class="stat-value">—</span></div></div>
+            </div>
+        </div>
+
         <!-- Player Name -->
         <div id="player-name-container">
             <input type="text" id="player-name-input" placeholder="İsmini yaz..." maxlength="16" value="" readonly>
@@ -177,6 +210,8 @@
                 <div id="leaderboard-tabs">
                     <button class="lb-tab active" data-type="cps">CPS</button>
                     <button class="lb-tab" data-type="reaction">Reaksiyon</button>
+                    <button class="lb-tab" data-type="accuracy">Doğruluk</button>
+                    <button class="lb-tab" data-type="number">Sayı</button>
                 </div>
                 <div id="leaderboard-list">
                     <div class="lb-loading">Yükleniyor...</div>
@@ -201,6 +236,8 @@
             <div id="admin-tabs">
                 <button class="admin-tab active" data-type="cps">CPS</button>
                 <button class="admin-tab" data-type="reaction">Reaksiyon</button>
+                <button class="admin-tab" data-type="accuracy">Doğruluk</button>
+                <button class="admin-tab" data-type="number">Sayı</button>
             </div>
             <div id="admin-search-row">
                 <input id="admin-search" type="text" placeholder="İsim ara...">
