@@ -198,6 +198,115 @@ function init() {
     if (state.registeredName && isInappropriateName(state.registeredName)) {
         forceInappropriateRename();
     }
+
+    // Admin panel
+    initAdminPanel();
+}
+
+function initAdminPanel() {
+    const adminBtn = document.getElementById('admin-btn');
+    const adminModal = document.getElementById('admin-modal');
+    const adminClose = document.getElementById('admin-close');
+    const adminRefresh = document.getElementById('admin-refresh-btn');
+    const adminSearch = document.getElementById('admin-search');
+    const adminTabs = document.querySelectorAll('.admin-tab');
+    if (!adminBtn) return;
+
+    let adminTab = 'cps';
+
+    adminBtn.addEventListener('click', async () => {
+        adminModal.classList.add('open');
+        await renderAdminList(adminTab);
+    });
+    adminClose.addEventListener('click', () => adminModal.classList.remove('open'));
+    adminModal.addEventListener('click', (e) => { if (e.target === adminModal) adminModal.classList.remove('open'); });
+    adminRefresh.addEventListener('click', async () => {
+        state.leaderboardData = null; state.lbCacheTime = 0;
+        await renderAdminList(adminTab);
+    });
+    adminSearch.addEventListener('input', () => renderAdminList(adminTab, adminSearch.value));
+    adminTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            adminTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            adminTab = tab.dataset.type;
+            renderAdminList(adminTab, adminSearch.value);
+        });
+    });
+}
+
+async function renderAdminList(tabType, search = '') {
+    const adminList = document.getElementById('admin-list');
+    adminList.innerHTML = '<div style="text-align:center;color:#7a8a9a;padding:20px">Yükleniyor...</div>';
+    const data = await fetchLeaderboard();
+    let entries;
+    if (tabType === 'cps') {
+        const cpsEntries = data.filter(e => !e.type || e.type === 'cps');
+        const bestPerPlayer = {};
+        cpsEntries.forEach(e => {
+            const key = e.name.toLowerCase();
+            if (!bestPerPlayer[key] || e.cps > bestPerPlayer[key].cps) bestPerPlayer[key] = e;
+        });
+        entries = Object.values(bestPerPlayer).sort((a, b) => b.cps - a.cps);
+    } else {
+        const reactionEntries = data.filter(e => e.type === 'reaction' && e.time);
+        const bestPerPlayer = {};
+        reactionEntries.forEach(e => {
+            const key = e.name.toLowerCase();
+            if (!bestPerPlayer[key] || e.time < bestPerPlayer[key].time) bestPerPlayer[key] = e;
+        });
+        entries = Object.values(bestPerPlayer).sort((a, b) => a.time - b.time);
+    }
+    if (search) entries = entries.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
+    if (entries.length === 0) {
+        adminList.innerHTML = '<div style="text-align:center;color:#7a8a9a;padding:20px">Kayıt bulunamadı</div>';
+        return;
+    }
+    adminList.innerHTML = entries.map((e, i) => {
+        const score = tabType === 'cps' ? `${e.cps} CPS` : `${e.time} ms`;
+        const rank = i + 1;
+        return `<div class="admin-row">
+            <div class="admin-row-info">
+                <span class="admin-row-name">${rank}. ${escapeHtml(e.name)}</span>
+                <span class="admin-row-score">${score}</span>
+            </div>
+            <button class="admin-delete-btn" data-name="${escapeHtml(e.name)}">🗑 Sil</button>
+        </div>`;
+    }).join('');
+    adminList.querySelectorAll('.admin-delete-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const name = btn.dataset.name;
+            if (!confirm(`"${name}" adlı oyuncunun tüm ${tabType === 'cps' ? 'CPS' : 'Reaksiyon'} skorları silinecek. Emin misin?`)) return;
+            btn.textContent = 'Siliniyor...'; btn.disabled = true;
+            await adminDeletePlayer(name, tabType);
+            await renderAdminList(tabType, document.getElementById('admin-search').value);
+        });
+    });
+}
+
+async function adminDeletePlayer(name, tabType) {
+    const data = state.leaderboardData || await fetchLeaderboard();
+    const filtered = data.filter(e => {
+        const nameMatch = e.name.toLowerCase() === name.toLowerCase();
+        if (!nameMatch) return true;
+        if (tabType === 'cps') return e.type === 'reaction';
+        if (tabType === 'reaction') return e.type !== 'reaction';
+        return false;
+    });
+    if (isJsonBinConfigured()) {
+        try {
+            await fetch(`${JSONBIN_CONFIG.BASE_URL}/b/${JSONBIN_CONFIG.BIN_ID}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_CONFIG.API_KEY },
+                body: JSON.stringify({ scores: filtered })
+            });
+        } catch(err) { console.error('Admin delete error:', err); return; }
+    } else {
+        localStorage.setItem('leaderboard', JSON.stringify(filtered));
+    }
+    state.leaderboardData = filtered;
+    localStorage.setItem('leaderboardCache', JSON.stringify(filtered));
+    renderLeaderboard(filtered, state.leaderboardTab);
 }
 
 function updateMuteButton() {
@@ -207,9 +316,12 @@ function updateMuteButton() {
 
 function updateChangelogVisibility() {
     const btn = document.getElementById('changelog-btn');
+    const adminBtn = document.getElementById('admin-btn');
     if (!btn) return;
     const name = (state.registeredName || playerNameInput.value.trim()).toLowerCase();
-    btn.style.display = name === 'everseekn' ? '' : 'none';
+    const isAdmin = name === 'everseekn';
+    btn.style.display = isAdmin ? '' : 'none';
+    if (adminBtn) adminBtn.style.display = isAdmin ? '' : 'none';
 }
 
 function forceInappropriateRename() {

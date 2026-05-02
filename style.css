@@ -86,7 +86,208 @@ body {
     background: rgba(240, 192, 64, 0.1);
 }
 
-/* Changelog Modal */
+/* Admin Panel */
+#admin-btn {
+    position: absolute;
+    top: 0;
+    left: 46px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: #e8e8e8;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#admin-btn:hover {
+    border-color: rgba(231, 76, 60, 0.5);
+    background: rgba(231, 76, 60, 0.1);
+}
+
+#admin-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+}
+
+#admin-modal.open { display: flex; }
+
+#admin-box {
+    background: #1a1f26;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: clSlideIn 0.25s ease-out;
+}
+
+#admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(231, 76, 60, 0.08);
+}
+
+#admin-header h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    color: #e74c3c;
+}
+
+#admin-close {
+    background: transparent;
+    border: none;
+    color: #7a8a9a;
+    font-size: 1.8rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+#admin-close:hover { background: rgba(255,255,255,0.06); color: #e8e8e8; }
+
+#admin-tabs {
+    display: flex;
+    padding: 12px 16px 0;
+    gap: 8px;
+}
+
+.admin-tab {
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.9rem;
+    padding: 8px 20px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 8px 8px 0 0;
+    background: rgba(255,255,255,0.03);
+    color: #7a8a9a;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.admin-tab.active {
+    border-color: #e74c3c;
+    background: rgba(231,76,60,0.12);
+    color: #e74c3c;
+}
+
+#admin-search-row {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+#admin-search {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+#admin-search:focus { outline: none; border-color: #e74c3c; }
+
+#admin-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 8px 16px;
+}
+
+.admin-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: background 0.15s;
+}
+
+.admin-row:hover { background: rgba(255,255,255,0.06); }
+
+.admin-row-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.admin-row-name {
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: #e0e0e0;
+}
+
+.admin-row-score {
+    font-size: 0.75rem;
+    color: #7a8a9a;
+}
+
+.admin-delete-btn {
+    background: rgba(231,76,60,0.15);
+    border: 1px solid rgba(231,76,60,0.4);
+    border-radius: 6px;
+    color: #e74c3c;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.admin-delete-btn:hover {
+    background: rgba(231,76,60,0.3);
+}
+
+#admin-footer {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    justify-content: flex-end;
+}
+
+#admin-refresh-btn {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: #c0c8d0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#admin-refresh-btn:hover { background: rgba(255,255,255,0.1); }
+
+#admin-list::-webkit-scrollbar { width: 6px; }
+#admin-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+
 #changelog-modal {
     position: fixed;
     inset: 0;
