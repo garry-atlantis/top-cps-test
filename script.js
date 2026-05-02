@@ -174,10 +174,12 @@ gameTypeBtns.forEach(btn => {
             cpsSection.style.display = '';
             reactionSection.style.display = 'none';
             document.querySelector('#header h1').textContent = '⚡ CPS TEST ⚡';
+            state.lastReactionTime = 0;
         } else {
             cpsSection.style.display = 'none';
             reactionSection.style.display = '';
             document.querySelector('#header h1').textContent = '⚡ REAKSİYON TESTİ ⚡';
+            state.lastSessionCps = 0;
             resetReaction();
         }
     });
