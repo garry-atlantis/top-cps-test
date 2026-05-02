@@ -186,6 +186,7 @@ function init() {
     const changelogModal = document.getElementById('changelog-modal');
     const changelogClose = document.getElementById('changelog-close');
     if (changelogBtn) {
+        updateChangelogVisibility();
         changelogBtn.addEventListener('click', () => changelogModal.classList.add('open'));
         changelogClose.addEventListener('click', () => changelogModal.classList.remove('open'));
         changelogModal.addEventListener('click', (e) => {
@@ -202,6 +203,13 @@ function init() {
 function updateMuteButton() {
     muteBtn.textContent = state.muted ? '🔇' : '🔊';
     muteBtn.classList.toggle('muted', state.muted);
+}
+
+function updateChangelogVisibility() {
+    const btn = document.getElementById('changelog-btn');
+    if (!btn) return;
+    const name = (state.registeredName || playerNameInput.value.trim()).toLowerCase();
+    btn.style.display = name === 'everseekn' ? '' : 'none';
 }
 
 function forceInappropriateRename() {
@@ -622,6 +630,7 @@ nameModalConfirm.addEventListener('click', async () => {
     // Restore cancel button after successful rename
     nameModalCancel.style.display = '';
     state.forceRename = false;
+    updateChangelogVisibility();
 });
 
 nameModal.addEventListener('click', (e) => {
