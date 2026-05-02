@@ -32,12 +32,124 @@ body {
 /* Header */
 #header {
     text-align: center;
+    width: 100%;
+    position: relative;
 }
 
 #header h1 {
     font-family: 'Fredoka One', cursive;
     font-size: 2rem;
     color: #e8e8e8;
+}
+
+#mute-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: #e8e8e8;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#mute-btn:hover {
+    border-color: rgba(52, 152, 219, 0.5);
+    background: rgba(52, 152, 219, 0.1);
+}
+
+#mute-btn.muted {
+    opacity: 0.55;
+}
+
+#kbd-hint {
+    font-size: 0.7rem;
+    color: #5a6a7a;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* Reaction History Bars */
+#reaction-history {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    width: 100%;
+    padding: 0 4px;
+}
+
+.reaction-history-slot {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    transition: all 0.3s;
+}
+
+.reaction-history-slot.filled {
+    background: rgba(52, 152, 219, 0.1);
+    border-color: rgba(52, 152, 219, 0.4);
+}
+
+.reaction-history-slot.filled.fast {
+    background: rgba(46, 204, 113, 0.12);
+    border-color: rgba(46, 204, 113, 0.5);
+}
+
+.reaction-history-slot.filled.slow {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: rgba(231, 76, 60, 0.4);
+}
+
+.rh-label {
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: #5a6a7a;
+    text-transform: uppercase;
+}
+
+.rh-value {
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.9rem;
+    color: #e0e0e0;
+}
+
+.reaction-history-slot.filled.fast .rh-value { color: #2ecc71; }
+.reaction-history-slot.filled.slow .rh-value { color: #ff6b6b; }
+
+/* Confetti */
+#confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+}
+
+.confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 14px;
+    top: -20px;
+    animation: confettiFall 2.4s ease-in forwards;
+}
+
+@keyframes confettiFall {
+    to {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+    }
 }
 
 /* CPS Labels */
@@ -1088,6 +1200,11 @@ body {
     .reaction-result-value { font-size: 2.4rem; }
     #reaction-text { font-size: 1.5rem; }
     .reaction-ready #reaction-text { font-size: 2rem; }
+    #mute-btn { width: 36px; height: 36px; font-size: 1rem; }
+    #header h1 { font-size: 1.6rem; }
+    #kbd-hint { display: none; }
+    .rh-value { font-size: 0.75rem; }
+    .rh-label { font-size: 0.55rem; }
 
     /* Larger mode buttons for thumb tapping */
     .mode-btn {

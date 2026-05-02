@@ -11,7 +11,9 @@
     <div id="app">
         <!-- Header -->
         <header id="header">
+            <button id="mute-btn" title="Sesi aç/kapat" aria-label="Sesi aç/kapat">🔊</button>
             <h1>⚡ CPS TEST ⚡</h1>
+            <div id="kbd-hint">Boşluk: tıkla · R: sıfırla</div>
         </header>
 
         <!-- Game Type Selector -->
@@ -101,6 +103,14 @@
                     <span id="reaction-text">Hazır mısın?</span>
                     <span id="reaction-sub" class="click-count">Kutucuğa tıkla</span>
                 </div>
+            </div>
+
+            <div id="reaction-history">
+                <div class="reaction-history-slot" data-slot="1"><span class="rh-label">1</span><span class="rh-value">—</span></div>
+                <div class="reaction-history-slot" data-slot="2"><span class="rh-label">2</span><span class="rh-value">—</span></div>
+                <div class="reaction-history-slot" data-slot="3"><span class="rh-label">3</span><span class="rh-value">—</span></div>
+                <div class="reaction-history-slot" data-slot="4"><span class="rh-label">4</span><span class="rh-value">—</span></div>
+                <div class="reaction-history-slot" data-slot="5"><span class="rh-label">5</span><span class="rh-value">—</span></div>
             </div>
 
             <div id="reaction-stats-panel">

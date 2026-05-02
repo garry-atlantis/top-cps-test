@@ -38,6 +38,8 @@ const state = {
     reactionBest: parseInt(localStorage.getItem('reactionBest')) || 0,
     reactionRound: 0, reactionMaxRounds: 5,
     lastReactionTime: 0,
+    muted: localStorage.getItem('muted') === 'true',
+    forceRename: false,
 };
 
 // ====== DOM ======
@@ -80,13 +82,17 @@ const statReactionBest = document.getElementById('stat-reaction-best');
 const statReactionAvg = document.getElementById('stat-reaction-avg');
 const statReactionRound = document.getElementById('stat-reaction-round');
 const statReactionWorst = document.getElementById('stat-reaction-worst');
+const muteBtn = document.getElementById('mute-btn');
+const reactionHistorySlots = document.querySelectorAll('.reaction-history-slot');
 
 // ====== SOUND ======
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
 function getAudioCtx() { if (!audioCtx) audioCtx = new AudioCtx(); return audioCtx; }
+function soundEnabled() { return !state.muted; }
 
 function playClickSound() {
+    if (!soundEnabled()) return;
     try {
         const ctx = getAudioCtx(), osc = ctx.createOscillator(), gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
@@ -97,6 +103,7 @@ function playClickSound() {
 }
 
 function playEndSound() {
+    if (!soundEnabled()) return;
     try {
         const ctx = getAudioCtx();
         [{ f: 523, t: 0, d: 0.3 }, { f: 659, t: 0.15, d: 0.5 }].forEach(n => {
@@ -110,6 +117,7 @@ function playEndSound() {
 }
 
 function playCountdownBeep() {
+    if (!soundEnabled()) return;
     try {
         const ctx = getAudioCtx(), osc = ctx.createOscillator(), gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
@@ -120,6 +128,7 @@ function playCountdownBeep() {
 }
 
 function playGoBeep() {
+    if (!soundEnabled()) return;
     try {
         const ctx = getAudioCtx(), osc = ctx.createOscillator(), gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
@@ -130,6 +139,7 @@ function playGoBeep() {
 }
 
 function playReactionGo() {
+    if (!soundEnabled()) return;
     try {
         const ctx = getAudioCtx(), osc = ctx.createOscillator(), gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
@@ -140,6 +150,7 @@ function playReactionGo() {
 }
 
 function playReactionEarly() {
+    if (!soundEnabled()) return;
     try {
         const ctx = getAudioCtx(), osc = ctx.createOscillator(), gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
@@ -161,6 +172,40 @@ function init() {
         playerNameInput.readOnly = true;
         if (state.nameChangeUsed) changeNameBtn.style.display = 'none';
     }
+
+    // Mute button setup
+    updateMuteButton();
+    muteBtn.addEventListener('click', () => {
+        state.muted = !state.muted;
+        localStorage.setItem('muted', state.muted);
+        updateMuteButton();
+    });
+
+    // Force rename if registered name is inappropriate
+    if (state.registeredName && isInappropriateName(state.registeredName)) {
+        forceInappropriateRename();
+    }
+}
+
+function updateMuteButton() {
+    muteBtn.textContent = state.muted ? '🔇' : '🔊';
+    muteBtn.classList.toggle('muted', state.muted);
+}
+
+function forceInappropriateRename() {
+    state.forceRename = true;
+    // Allow change again — bypass nameChangeUsed lock for inappropriate names
+    state.nameChangeUsed = false;
+    localStorage.removeItem('nameChangeUsed');
+    changeNameBtn.style.display = '';
+    playerNameInput.readOnly = false;
+
+    nameModalText.innerHTML = '<b>Uygunsuz isim tespit edildi!</b><br>Lütfen yeni bir isim seç. Eski skorlarınız yeni isme aktarılacak.';
+    nameModalInput.value = '';
+    nameModalInput.placeholder = 'Yeni isim...';
+    nameModalCancel.style.display = 'none';
+    nameModal.classList.add('open');
+    setTimeout(() => nameModalInput.focus(), 100);
 }
 
 // ====== GAME TYPE SELECTOR ======
@@ -350,6 +395,11 @@ function resetReaction() {
     statReactionAvg.textContent = '—';
     statReactionRound.textContent = '0/5';
     statReactionWorst.textContent = '—';
+    // Clear history bars
+    reactionHistorySlots.forEach(slot => {
+        slot.classList.remove('filled', 'fast', 'slow');
+        slot.querySelector('.rh-value').textContent = '—';
+    });
 }
 
 function handleReactionClick(e) {
@@ -405,6 +455,15 @@ function handleReactionClick(e) {
             statReactionAvg.textContent = avg + 'ms';
             statReactionRound.textContent = `${state.reactionRound}/${state.reactionMaxRounds}`;
             statReactionWorst.textContent = worst + 'ms';
+
+            // Update history bar
+            const slot = reactionHistorySlots[state.reactionRound - 1];
+            if (slot) {
+                slot.classList.add('filled');
+                if (time < 250) slot.classList.add('fast');
+                else if (time > 400) slot.classList.add('slow');
+                slot.querySelector('.rh-value').textContent = time;
+            }
             if (best < state.reactionBest || state.reactionBest === 0) {
                 state.reactionBest = best;
                 localStorage.setItem('reactionBest', best);
@@ -485,6 +544,28 @@ function showRankNotification(rank, type) {
     const label = type === 'cps' ? 'CPS' : 'Reaksiyon';
     const rankText = rank === 1 ? '🥇 1.' : rank === 2 ? '🥈 2.' : rank === 3 ? '🥉 3.' : `${rank}.`;
     showNotification(`${label} sıralamasında ${rankText} sıradasın!`, 'rank');
+    if (rank <= 3) launchConfetti();
+}
+
+function launchConfetti() {
+    let container = document.getElementById('confetti-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'confetti-container';
+        document.body.appendChild(container);
+    }
+    const colors = ['#f0c040', '#3498db', '#2ecc71', '#e74c3c', '#9b59b6', '#48dbfb'];
+    for (let i = 0; i < 60; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = (Math.random() * 0.5) + 's';
+        piece.style.animationDuration = (1.8 + Math.random() * 1.2) + 's';
+        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+        container.appendChild(piece);
+        setTimeout(() => piece.remove(), 3500);
+    }
 }
 
 // ====== NAME MODAL ======
@@ -526,9 +607,14 @@ nameModalConfirm.addEventListener('click', async () => {
         }
     }
     nameModal.classList.remove('open');
+    // Restore cancel button after successful rename
+    nameModalCancel.style.display = '';
+    state.forceRename = false;
 });
 
-nameModal.addEventListener('click', (e) => { if (e.target === nameModal) nameModal.classList.remove('open'); });
+nameModal.addEventListener('click', (e) => {
+    if (e.target === nameModal && !state.forceRename) nameModal.classList.remove('open');
+});
 nameModalInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') nameModalConfirm.click(); });
 
 // ====== MODE SELECTION ======
@@ -608,6 +694,11 @@ function getLocalLeaderboard() {
 }
 
 async function submitScore(name, value, mode, type) {
+    // Block inappropriate names from being submitted
+    if (isInappropriateName(name)) {
+        forceInappropriateRename();
+        return false;
+    }
     const entry = { name, type, date: new Date().toISOString() };
     if (type === 'cps') { entry.cps = value; entry.mode = mode; }
     else { entry.time = value; }
@@ -649,6 +740,8 @@ function upsertScore(data, entry, type) {
 
 function renderLeaderboard(data, tabType) {
     const playerName = playerNameInput.value.trim().toLowerCase();
+    // Filter out entries with inappropriate names
+    data = data.filter(e => !isInappropriateName(e.name));
     if (tabType === 'cps') {
         // Include entries with type='cps' or no type (legacy data)
         const cpsEntries = data.filter(e => !e.type || e.type === 'cps');
