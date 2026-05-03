@@ -1433,17 +1433,39 @@ function openCropModal(file) {
     const modal = document.getElementById('crop-modal');
     const imgEl = document.getElementById('crop-image');
     const status = document.getElementById('crop-status');
-    status.textContent = ''; status.className = '';
+
+    // Open modal IMMEDIATELY with loading state so user sees something
+    modal.classList.add('open');
+    cropState.image = null;
+    imgEl.removeAttribute('src');
+    imgEl.style.transform = 'translate(0, 0) scale(1)';
+    imgEl.style.width = '0px';
+    imgEl.style.height = '0px';
+    status.className = '';
+    status.textContent = 'Resim yükleniyor...';
+
+    if (!file.type.startsWith('image/')) {
+        status.className = 'error';
+        status.textContent = 'Geçersiz dosya formatı';
+        return;
+    }
 
     const reader = new FileReader();
+    reader.onerror = () => {
+        status.className = 'error';
+        status.textContent = 'Dosya okunamadı';
+    };
     reader.onload = (e) => {
         const img = new Image();
+        img.onerror = () => {
+            status.className = 'error';
+            status.textContent = 'Bu resim formatı desteklenmiyor (HEIC olabilir — JPG/PNG kullan)';
+        };
         img.onload = () => {
             cropState.image = img;
             imgEl.src = e.target.result;
             imgEl.style.width = img.naturalWidth + 'px';
             imgEl.style.height = img.naturalHeight + 'px';
-            // Cover scale
             cropState.baseScale = Math.max(CROP_VIEWPORT / img.naturalWidth, CROP_VIEWPORT / img.naturalHeight);
             cropState.zoom = 1;
             const eff = cropState.baseScale * cropState.zoom;
@@ -1451,12 +1473,10 @@ function openCropModal(file) {
             cropState.ty = (CROP_VIEWPORT - img.naturalHeight * eff) / 2;
             document.getElementById('crop-zoom').value = '1';
             applyCropTransform();
-            modal.classList.add('open');
+            status.textContent = '';
         };
-        img.onerror = () => { status.className = 'error'; status.textContent = 'Resim okunamadı'; };
         img.src = e.target.result;
     };
-    reader.onerror = () => { status.className = 'error'; status.textContent = 'Dosya okunamadı'; };
     reader.readAsDataURL(file);
 }
 
