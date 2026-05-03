@@ -943,6 +943,15 @@ nameModalConfirm.addEventListener('click', async () => {
                             nameModalText.innerHTML = 'İsim değişikliği kaydedilemedi. Sunucu hatası.';
                             return;
                         }
+                        // Verify the update by fetching again
+                        state.lbCacheTime = 0;
+                        const verifyData = await fetchLeaderboard(true);
+                        const stillHasOldName = verifyData.some(e => e.name.toLowerCase() === oldName.toLowerCase());
+                        if (stillHasOldName) {
+                            console.error('Name change verification failed: old name still exists');
+                            nameModalText.innerHTML = 'İsim değişikliği doğrulanamadı. Eski isim hala görünüyor.';
+                            return;
+                        }
                     } catch (err) {
                         console.error('Rename error:', err);
                         nameModalText.innerHTML = 'İsim değişikliği kaydedilemedi. Bağlantı hatası.';
