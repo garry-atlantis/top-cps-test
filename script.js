@@ -1535,7 +1535,7 @@ async function openProfileModal() {
             </div>`;
         }
         const rankClass = r.myRank === 1 ? 'top1' : r.myRank <= 3 ? 'top3' : '';
-        const rankText = r.myRank === 1 ? '🥇' : r.myRank === 2 ? '🥈' : r.myRank === 3 ? '🥉' : `#${r.myRank}`;
+        const rankText = `#${r.myRank}`;
         return `<div class="profile-record">
             <span class="profile-record-icon">${r.icon}</span>
             <span class="profile-record-name">${r.label}</span>

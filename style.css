@@ -1087,7 +1087,7 @@ body {
     background: #e0b030;
 }
 
-#reset-btn {
+#reset-btn, #profile-btn {
     font-family: 'Nunito', sans-serif;
     font-weight: 800;
     font-size: 0.9rem;
@@ -1095,13 +1095,23 @@ body {
     border: none;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.08);
-    color: #999;
+    color: #c0c8d0;
     cursor: pointer;
     transition: background 0.2s ease;
 }
 
-#reset-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
+#reset-btn:hover, #profile-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+#profile-btn {
+    background: rgba(46, 204, 113, 0.14);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+#profile-btn:hover {
+    background: rgba(46, 204, 113, 0.22);
 }
 
 /* Leaderboard Overlay */
