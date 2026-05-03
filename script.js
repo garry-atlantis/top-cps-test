@@ -1251,6 +1251,7 @@ function applyTheme(theme) {
 
 function initTheme() {
     applyTheme(state.theme);
+    if (!themeBtn) return;
     themeBtn.addEventListener('click', () => themeModal.classList.add('open'));
     themeClose.addEventListener('click', () => themeModal.classList.remove('open'));
     themeModal.addEventListener('click', (e) => { if (e.target === themeModal) themeModal.classList.remove('open'); });
