@@ -929,7 +929,15 @@ nameModalConfirm.addEventListener('click', async () => {
         try {
             const data = state.leaderboardData || await fetchLeaderboard();
             let changed = false;
-            data.forEach(e => { if (e.name.toLowerCase() === oldName.toLowerCase()) { e.name = newName; changed = true; } });
+            const oldNameNormalized = oldName.toLowerCase().trim();
+            data.forEach(e => {
+                const entryName = (e.name || '').toLowerCase().trim();
+                if (entryName === oldNameNormalized) {
+                    e.name = newName;
+                    changed = true;
+                    console.log(`Updated entry: ${e.name} -> ${newName}`);
+                }
+            });
             if (changed) {
                 if (isJsonBinConfigured()) {
                     try {
