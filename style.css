@@ -42,54 +42,24 @@ body {
     color: #e8e8e8;
 }
 
-#mute-btn {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
-    color: #e8e8e8;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-#mute-btn:hover {
-    border-color: rgba(52, 152, 219, 0.5);
-    background: rgba(52, 152, 219, 0.1);
-}
-
-#mute-btn.muted {
-    opacity: 0.55;
-}
-
-#theme-btn {
-    position: absolute;
-    top: 0;
-    right: 46px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
-    color: #e8e8e8;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-#theme-btn:hover {
-    border-color: rgba(240, 192, 64, 0.5);
-    background: rgba(240, 192, 64, 0.1);
-}
-
-#changelog-btn {
+/* Header corner button groups */
+#header-btns-left {
     position: absolute;
     top: 0;
     left: 0;
+    display: flex;
+    gap: 6px;
+}
+
+#header-btns-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 6px;
+}
+
+#mute-btn, #theme-btn, #changelog-btn, #admin-btn {
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -99,6 +69,16 @@ body {
     font-size: 1.1rem;
     cursor: pointer;
     transition: all 0.2s;
+    padding: 0;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#mute-btn:hover, #theme-btn:hover {
+    border-color: rgba(52, 152, 219, 0.5);
+    background: rgba(52, 152, 219, 0.1);
 }
 
 #changelog-btn:hover {
@@ -106,25 +86,13 @@ body {
     background: rgba(240, 192, 64, 0.1);
 }
 
-/* Admin Panel */
-#admin-btn {
-    position: absolute;
-    top: 0;
-    left: 46px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
-    color: #e8e8e8;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
 #admin-btn:hover {
     border-color: rgba(231, 76, 60, 0.5);
     background: rgba(231, 76, 60, 0.1);
+}
+
+#mute-btn.muted {
+    opacity: 0.55;
 }
 
 #admin-modal {
@@ -1580,8 +1548,7 @@ body {
     .reaction-result-value { font-size: 2.4rem; }
     #reaction-text { font-size: 1.5rem; }
     .reaction-ready #reaction-text { font-size: 2rem; }
-    #mute-btn { width: 36px; height: 36px; font-size: 1rem; }
-    #changelog-btn { width: 36px; height: 36px; font-size: 1rem; }
+    #mute-btn, #theme-btn, #changelog-btn, #admin-btn { width: 36px; height: 36px; font-size: 1rem; }
     #header h1 { font-size: 1.6rem; }
     #kbd-hint { display: none; }
     .rh-value { font-size: 0.75rem; }

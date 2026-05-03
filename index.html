@@ -11,10 +11,14 @@
     <div id="app">
         <!-- Header -->
         <header id="header">
-            <button id="mute-btn" title="Sesi aç/kapat" aria-label="Sesi aç/kapat">🔊</button>
-            <button id="theme-btn" title="Tema" aria-label="Tema">🎨</button>
-            <button id="changelog-btn" title="Güncellemeler" aria-label="Güncellemeler" style="display:none">📋</button>
-            <button id="admin-btn" title="Admin Paneli" aria-label="Admin Paneli" style="display:none">⚙️</button>
+            <div id="header-btns-left">
+                <button id="changelog-btn" title="Güncellemeler" aria-label="Güncellemeler" style="display:none">�</button>
+                <button id="admin-btn" title="Admin Paneli" aria-label="Admin Paneli" style="display:none">⚙️</button>
+            </div>
+            <div id="header-btns-right">
+                <button id="theme-btn" title="Tema" aria-label="Tema">🎨</button>
+                <button id="mute-btn" title="Sesi aç/kapat" aria-label="Sesi aç/kapat">🔊</button>
+            </div>
             <h1>CPS TEST</h1>
             <div id="kbd-hint">Boşluk: tıkla · R: sıfırla</div>
         </header>
