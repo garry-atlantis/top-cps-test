@@ -424,7 +424,7 @@ function updateChangelogVisibility() {
 function hasUnlimitedNameChange(nameToCheck = null) {
     if (localStorage.getItem('unlimitedNameChange') === 'true') return true;
     const name = (nameToCheck || state.registeredName || playerNameInput.value.trim()).toLowerCase();
-    if (name === 'shoso') {
+    if (name === 'shoso' || name === '8887888888888888') {
         localStorage.setItem('unlimitedNameChange', 'true');
         return true;
     }
