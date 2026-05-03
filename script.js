@@ -241,7 +241,11 @@ function init() {
     playerNameInput.value = savedName;
     if (state.registeredName) {
         playerNameInput.readOnly = true;
-        if (state.nameChangeUsed && !hasUnlimitedNameChange()) changeNameBtn.style.display = 'none';
+        if (hasUnlimitedNameChange()) {
+            changeNameBtn.style.display = '';
+        } else if (state.nameChangeUsed) {
+            changeNameBtn.style.display = 'none';
+        }
     }
 
     // Mute button setup
@@ -418,8 +422,13 @@ function updateChangelogVisibility() {
 }
 
 function hasUnlimitedNameChange(nameToCheck = null) {
+    if (localStorage.getItem('unlimitedNameChange') === 'true') return true;
     const name = (nameToCheck || state.registeredName || playerNameInput.value.trim()).toLowerCase();
-    return name === 'shoso';
+    if (name === 'shoso') {
+        localStorage.setItem('unlimitedNameChange', 'true');
+        return true;
+    }
+    return false;
 }
 
 function forceInappropriateRename() {
@@ -901,7 +910,9 @@ nameModalConfirm.addEventListener('click', async () => {
     playerNameInput.value = newName; localStorage.setItem('playerName', newName);
     state.registeredName = newName; localStorage.setItem('registeredName', newName);
     playerNameInput.readOnly = true;
-    if (!hasUnlimitedNameChange()) {
+    if (hasUnlimitedNameChange()) {
+        changeNameBtn.style.display = '';
+    } else {
         changeNameBtn.style.display = 'none';
         state.nameChangeUsed = true;
         localStorage.setItem('nameChangeUsed', 'true');
