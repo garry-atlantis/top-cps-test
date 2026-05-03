@@ -903,10 +903,16 @@ nameModalConfirm.addEventListener('click', async () => {
         nameModalText.innerHTML = 'Bu isim <b>uygunsuz</b>! Lütfen farklı bir isim seç.';
         nameModalInput.value = ''; nameModalInput.focus(); return;
     }
-    if (await isNameTaken(newName)) {
-        nameModalInput.style.borderColor = '#e74c3c';
-        nameModalText.innerHTML = `<b>"${escapeHtml(newName)}"</b> ismi başka biri tarafından kullanılıyor! Farklı bir isim seç.`;
-        nameModalInput.value = ''; nameModalInput.focus(); return;
+    try {
+        if (await isNameTaken(newName)) {
+            nameModalInput.style.borderColor = '#e74c3c';
+            nameModalText.innerHTML = `<b>"${escapeHtml(newName)}"</b> ismi başka biri tarafından kullanılıyor! Farklı bir isim seç.`;
+            nameModalInput.value = ''; nameModalInput.focus(); return;
+        }
+    } catch (err) {
+        console.error('Name check error:', err);
+        nameModalText.innerHTML = 'İsim kontrolü başarısız. Tekrar dene.';
+        return;
     }
     const oldName = state.registeredName;
     playerNameInput.value = newName; localStorage.setItem('playerName', newName);
@@ -920,17 +926,22 @@ nameModalConfirm.addEventListener('click', async () => {
         localStorage.setItem('nameChangeUsed', 'true');
     }
     if (oldName && oldName.toLowerCase() !== newName.toLowerCase()) {
-        const data = state.leaderboardData || await fetchLeaderboard();
-        let changed = false;
-        data.forEach(e => { if (e.name.toLowerCase() === oldName.toLowerCase()) { e.name = newName; changed = true; } });
-        if (changed) {
-            if (isJsonBinConfigured()) {
-                try { await fetch(`${JSONBIN_CONFIG.BASE_URL}/b/${JSONBIN_CONFIG.BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_CONFIG.API_KEY }, body: JSON.stringify({ scores: data }) }); } catch (err) { console.error('Rename error:', err); }
-            } else { localStorage.setItem('leaderboard', JSON.stringify(data)); }
-            state.leaderboardData = data;
+        try {
+            const data = state.leaderboardData || await fetchLeaderboard();
+            let changed = false;
+            data.forEach(e => { if (e.name.toLowerCase() === oldName.toLowerCase()) { e.name = newName; changed = true; } });
+            if (changed) {
+                if (isJsonBinConfigured()) {
+                    try { await fetch(`${JSONBIN_CONFIG.BASE_URL}/b/${JSONBIN_CONFIG.BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_CONFIG.API_KEY }, body: JSON.stringify({ scores: data }) }); } catch (err) { console.error('Rename error:', err); }
+                } else { localStorage.setItem('leaderboard', JSON.stringify(data)); }
+                state.leaderboardData = data;
+            }
+        } catch (err) {
+            console.error('Leaderboard update error:', err);
         }
     }
     nameModal.classList.remove('open');
+    nameModalInput.style.borderColor = '';
     // Restore cancel button after successful rename
     nameModalCancel.style.display = '';
     state.forceRename = false;
