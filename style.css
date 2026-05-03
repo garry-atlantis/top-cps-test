@@ -2036,19 +2036,16 @@ body {
 .avatar-option:hover { background: rgba(255,255,255,0.1); }
 .avatar-option.selected { border-color: #f0c040; background: rgba(240,192,64,0.15); }
 
-.lb-name {
-    display: flex !important;
-    align-items: center;
-    gap: 8px;
-}
-
 .lb-avatar {
     font-size: 1.3rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 30px;
+    height: 30px;
     line-height: 1;
     flex-shrink: 0;
+    margin-left: 6px;
 }
 
 .lb-avatar-img {
@@ -2059,6 +2056,13 @@ body {
     border: 1px solid rgba(255,255,255,0.15);
     flex-shrink: 0;
     display: block;
+    margin-left: 6px;
+}
+
+/* When avatar is present as sibling of lb-name, reduce its left margin */
+.lb-row > .lb-avatar + .lb-name,
+.lb-row > .lb-avatar-img + .lb-name {
+    margin-left: 8px;
 }
 
 #avatar-btn img {

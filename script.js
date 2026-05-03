@@ -1456,15 +1456,18 @@ async function openProfileModal() {
     const statsEl = document.getElementById('profile-stats-grid');
     const recordsEl = document.getElementById('profile-records-list');
 
+    const setProfileAvatar = (av) => {
+        if (isAvatarUrl(av)) avatarEl.innerHTML = `<img src="${av}" alt="" referrerpolicy="no-referrer">`;
+        else { avatarEl.innerHTML = ''; avatarEl.textContent = av || '👤'; }
+    };
+
     const myName = (state.registeredName || playerNameInput.value.trim() || '').trim();
     if (!myName) {
         nameEl.textContent = 'İsim yok';
         sinceEl.textContent = 'Önce isim belirle';
         statsEl.innerHTML = '';
         recordsEl.innerHTML = '<div style="color:#7a8a9a;text-align:center;padding:12px">Profilini görmek için önce isim belirle</div>';
-        avatarEl.innerHTML = state.avatar ? avatarHtml(state.avatar, 'lb-avatar').replace('lb-avatar', 'profile-av-inner') : '👤';
-        if (isAvatarUrl(state.avatar)) avatarEl.innerHTML = `<img src="${state.avatar}" alt="" referrerpolicy="no-referrer">`;
-        else avatarEl.textContent = state.avatar || '👤';
+        setProfileAvatar(state.avatar);
         modal.classList.add('open');
         return;
     }
@@ -1902,7 +1905,7 @@ function renderLeaderboard(data, tabType) {
         const isSelf = entry.name.toLowerCase() === playerName;
         const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
         const avatar = avatarHtml(entry.avatar, 'lb-avatar');
-        return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rankEmoji}</div><div class="lb-name">${avatar}${escapeHtml(entry.name)}</div><div class="lb-score">${scoreFormat(entry)}</div></div>`;
+        return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rankEmoji}</div>${avatar}<div class="lb-name">${escapeHtml(entry.name)}</div><div class="lb-score">${scoreFormat(entry)}</div></div>`;
     }).join('');
 }
 
