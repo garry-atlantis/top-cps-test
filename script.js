@@ -13,6 +13,15 @@ function isInappropriateName(name) {
     return INAPPROPRIATE_WORDS.some(word => lower.includes(word));
 }
 
+// Check if name is already taken by another player in the leaderboard.
+// Returns true if taken (and not by the current registered user).
+async function isNameTaken(name) {
+    const data = await fetchLeaderboard();
+    const lname = name.toLowerCase();
+    const myName = (state.registeredName || '').toLowerCase();
+    return data.some(e => e.name && e.name.toLowerCase() === lname && lname !== myName);
+}
+
 const JSONBIN_CONFIG = {
     API_KEY: '$2a$10$af0DhWYHHPpquLjKOUrNEe/QyqURuUFDb2ezuqq.KHballN7UeMAy',
     BIN_ID: '69f5121e36566621a814de8a',
@@ -561,8 +570,12 @@ async function autoSubmitIfBest(type, value, mode = null) {
     if (!name || isInappropriateName(name)) return;
     if (!value || value <= 0) return;
 
-    // Auto-register on first submission
+    // Auto-register on first submission - check name uniqueness first
     if (!state.registeredName) {
+        if (await isNameTaken(name)) {
+            showNotification(`"${name}" ismi alınmış, başka bir isim seç!`, 'warning');
+            return;
+        }
         state.registeredName = name;
         localStorage.setItem('registeredName', name);
         playerNameInput.readOnly = true;
@@ -821,6 +834,11 @@ nameModalConfirm.addEventListener('click', async () => {
     if (isInappropriateName(newName)) {
         nameModalInput.style.borderColor = '#e74c3c';
         nameModalText.innerHTML = 'Bu isim <b>uygunsuz</b>! Lütfen farklı bir isim seç.';
+        nameModalInput.value = ''; nameModalInput.focus(); return;
+    }
+    if (await isNameTaken(newName)) {
+        nameModalInput.style.borderColor = '#e74c3c';
+        nameModalText.innerHTML = `<b>"${escapeHtml(newName)}"</b> ismi başka biri tarafından kullanılıyor! Farklı bir isim seç.`;
         nameModalInput.value = ''; nameModalInput.focus(); return;
     }
     const oldName = state.registeredName;
@@ -1292,6 +1310,13 @@ submitScoreBtn.addEventListener('click', async () => {
         setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.style.opacity = ''; }, 2500); return;
     }
     if (!state.registeredName) {
+        if (await isNameTaken(name)) {
+            submitScoreBtn.textContent = `"${name}" alınmış!`;
+            submitScoreBtn.style.opacity = '0.6';
+            setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.style.opacity = ''; }, 2500);
+            showNotification(`"${name}" ismi alınmış, başka bir isim seç!`, 'warning');
+            return;
+        }
         state.registeredName = name; localStorage.setItem('registeredName', name);
         playerNameInput.readOnly = true; state.nameChangeUsed = true;
         localStorage.setItem('nameChangeUsed', 'true'); changeNameBtn.style.display = 'none';
