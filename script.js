@@ -59,6 +59,15 @@ const state = {
     numberOrder: [], numberTimerInterval: null,
     numberBest: parseInt(localStorage.getItem('numberBest')) || 0,
     lastNumberTime: 0,
+    // Color test
+    colorState: 'idle', colorCorrect: 0, colorWrong: 0,
+    colorTimer: null, colorEndTime: 0, colorDuration: 30,
+    colorTargetColor: '', colorTargetWord: '',
+    colorBest: parseInt(localStorage.getItem('colorBest')) || 0,
+    lastColorScore: 0,
+    // UI prefs
+    avatar: localStorage.getItem('avatar') || '😎',
+    theme: localStorage.getItem('theme') || 'dark',
 };
 
 // ====== DOM ======
@@ -123,6 +132,27 @@ const numNext = document.getElementById('num-next');
 const numTimer = document.getElementById('num-timer');
 const statNumBest = document.getElementById('stat-num-best');
 const statNumLast = document.getElementById('stat-num-last');
+
+// Color test
+const colorSection = document.getElementById('color-section');
+const colorDisplayZone = document.getElementById('color-display-zone');
+const colorDisplayText = document.getElementById('color-display-text');
+const colorCorrectEl = document.getElementById('color-correct');
+const colorWrongEl = document.getElementById('color-wrong');
+const colorTimerVal = document.getElementById('color-timer-val');
+const colorButtons = document.querySelectorAll('.color-btn');
+const statColorBest = document.getElementById('stat-color-best');
+const statColorPct = document.getElementById('stat-color-pct');
+
+// Theme & Avatar
+const themeBtn = document.getElementById('theme-btn');
+const themeModal = document.getElementById('theme-modal');
+const themeClose = document.getElementById('theme-close');
+const themeOptions = document.querySelectorAll('.theme-option');
+const avatarBtn = document.getElementById('avatar-btn');
+const avatarModal = document.getElementById('avatar-modal');
+const avatarClose = document.getElementById('avatar-close');
+const avatarGrid = document.getElementById('avatar-grid');
 
 // ====== SOUND ======
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -240,6 +270,9 @@ function init() {
 
     // Admin panel
     initAdminPanel();
+    // Theme & Avatar
+    initTheme();
+    initAvatar();
 }
 
 function initAdminPanel() {
@@ -274,7 +307,7 @@ function initAdminPanel() {
     });
 }
 
-const ADMIN_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', number: 'Sayı' };
+const ADMIN_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', number: 'Sayı', color: 'Renk' };
 
 async function renderAdminList(tabType, search = '') {
     const adminList = document.getElementById('admin-list');
@@ -307,6 +340,12 @@ async function renderAdminList(tabType, search = '') {
         n.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.time < best[k].time) best[k] = e; });
         entries = Object.values(best).sort((a, b) => a.time - b.time);
         scoreFmt = (e) => `${(e.time / 1000).toFixed(2)} sn`;
+    } else if (tabType === 'color') {
+        const c = data.filter(e => e.type === 'color' && typeof e.score === 'number');
+        const best = {};
+        c.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.score > best[k].score) best[k] = e; });
+        entries = Object.values(best).sort((a, b) => b.score - a.score);
+        scoreFmt = (e) => `${e.score} doğru`;
     }
 
     if (search) entries = entries.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
@@ -397,11 +436,12 @@ const GAME_TITLES = {
     reaction: '⚡ REAKSİYON TESTİ ⚡',
     accuracy: '🎯 DOĞRULUK TESTİ',
     number: '🔢 SAYI TESTİ',
+    color: '🎨 RENK TESTİ',
 };
 
 gameTypeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-        if (state.isRunning || state.isCountdown || state.accuracyState === 'running' || state.numberState === 'running') return;
+        if (state.isRunning || state.isCountdown || state.accuracyState === 'running' || state.numberState === 'running' || state.colorState === 'running') return;
         gameTypeBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         state.gameType = btn.dataset.type;
@@ -411,12 +451,14 @@ gameTypeBtns.forEach(btn => {
         reactionSection.style.display = 'none';
         accuracySection.style.display = 'none';
         numberSection.style.display = 'none';
+        colorSection.style.display = 'none';
 
         // Reset other modes' last scores so submit picks correct one
         state.lastSessionCps = 0;
         state.lastReactionTime = 0;
         state.lastAccuracyScore = 0;
         state.lastNumberTime = 0;
+        state.lastColorScore = 0;
 
         document.querySelector('#header h1').textContent = GAME_TITLES[state.gameType];
 
@@ -431,6 +473,9 @@ gameTypeBtns.forEach(btn => {
         } else if (state.gameType === 'number') {
             numberSection.style.display = '';
             resetNumber();
+        } else if (state.gameType === 'color') {
+            colorSection.style.display = '';
+            resetColorTest();
         }
     });
 });
@@ -563,6 +608,7 @@ const AUTO_SUBMIT_CONFIG = {
     reaction: { field: 'time',  higherBetter: false, matchType: (e) => e.type === 'reaction' },
     accuracy: { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'accuracy' },
     number:   { field: 'time',  higherBetter: false, matchType: (e) => e.type === 'number' },
+    color:    { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'color' },
 };
 
 async function autoSubmitIfBest(type, value, mode = null) {
@@ -784,7 +830,7 @@ function createNotificationStack() {
     return c;
 }
 
-const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', number: 'Sayı' };
+const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', number: 'Sayı', color: 'Renk' };
 
 function showRankNotification(rank, type) {
     const label = TYPE_LABELS[type] || type;
@@ -1091,6 +1137,182 @@ numberStartBtn.addEventListener('click', () => {
     startNumberGame();
 });
 
+// ====== COLOR TEST ======
+const COLOR_MAP = {
+    red:    { name: 'Kırmızı', hex: '#e74c3c' },
+    blue:   { name: 'Mavi',    hex: '#3498db' },
+    green:  { name: 'Yeşil',   hex: '#2ecc71' },
+    yellow: { name: 'Sarı',    hex: '#f0c040' },
+    purple: { name: 'Mor',     hex: '#9b59b6' },
+    orange: { name: 'Turuncu', hex: '#e67e22' },
+};
+const COLOR_KEYS = Object.keys(COLOR_MAP);
+
+function resetColorTest() {
+    clearInterval(state.colorTimer);
+    state.colorState = 'idle';
+    state.colorCorrect = 0;
+    state.colorWrong = 0;
+    colorCorrectEl.textContent = '0';
+    colorWrongEl.textContent = '0';
+    colorTimerVal.textContent = state.colorDuration;
+    colorDisplayText.textContent = 'Başlamak için tıkla';
+    colorDisplayText.style.color = '#7a8a9a';
+    statColorBest.textContent = state.colorBest || '—';
+    statColorPct.textContent = '—';
+}
+
+function startColorTest() {
+    state.colorState = 'running';
+    state.colorCorrect = 0;
+    state.colorWrong = 0;
+    colorCorrectEl.textContent = '0';
+    colorWrongEl.textContent = '0';
+    state.colorEndTime = Date.now() + state.colorDuration * 1000;
+    colorTimerVal.textContent = state.colorDuration;
+    nextColorChallenge();
+    state.colorTimer = setInterval(() => {
+        const remain = Math.max(0, Math.ceil((state.colorEndTime - Date.now()) / 1000));
+        colorTimerVal.textContent = remain;
+        if (remain <= 0) endColorTest();
+    }, 100);
+}
+
+function nextColorChallenge() {
+    // Pick a word and a different display color (Stroop)
+    const wordKey = COLOR_KEYS[Math.floor(Math.random() * COLOR_KEYS.length)];
+    let colorKey;
+    do { colorKey = COLOR_KEYS[Math.floor(Math.random() * COLOR_KEYS.length)]; }
+    while (Math.random() > 0.3 && colorKey === wordKey); // 70% chance they differ
+    state.colorTargetColor = colorKey;
+    state.colorTargetWord = wordKey;
+    colorDisplayText.textContent = COLOR_MAP[wordKey].name.toUpperCase();
+    colorDisplayText.style.color = COLOR_MAP[colorKey].hex;
+}
+
+function endColorTest() {
+    clearInterval(state.colorTimer);
+    state.colorState = 'ended';
+    colorDisplayText.textContent = `Bitti! ${state.colorCorrect} doğru`;
+    colorDisplayText.style.color = '#2ecc71';
+    const total = state.colorCorrect + state.colorWrong;
+    const pct = total > 0 ? Math.round((state.colorCorrect / total) * 100) : 0;
+    statColorPct.textContent = pct + '%';
+    state.lastColorScore = state.colorCorrect;
+    if (state.colorCorrect > state.colorBest) {
+        state.colorBest = state.colorCorrect;
+        localStorage.setItem('colorBest', state.colorCorrect);
+        statColorBest.textContent = state.colorCorrect;
+    }
+    playEndSound();
+    autoSubmitIfBest('color', state.colorCorrect);
+}
+
+function handleColorClick(pickedKey, btn) {
+    if (state.colorState === 'idle' || state.colorState === 'ended') {
+        startColorTest();
+        return;
+    }
+    if (state.colorState !== 'running') return;
+    if (pickedKey === state.colorTargetColor) {
+        state.colorCorrect++;
+        colorCorrectEl.textContent = state.colorCorrect;
+        btn.classList.remove('flash-correct');
+        void btn.offsetWidth;
+        btn.classList.add('flash-correct');
+        nextColorChallenge();
+    } else {
+        state.colorWrong++;
+        colorWrongEl.textContent = state.colorWrong;
+        btn.classList.remove('flash-wrong');
+        void btn.offsetWidth;
+        btn.classList.add('flash-wrong');
+    }
+}
+
+colorDisplayZone.addEventListener('click', () => {
+    if (state.colorState === 'idle' || state.colorState === 'ended') startColorTest();
+});
+
+colorButtons.forEach(btn => {
+    btn.addEventListener('click', () => handleColorClick(btn.dataset.color, btn));
+});
+
+// ====== THEME ======
+function applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    state.theme = theme;
+    localStorage.setItem('theme', theme);
+    themeOptions.forEach(o => o.classList.toggle('active', o.dataset.theme === theme));
+}
+
+function initTheme() {
+    applyTheme(state.theme);
+    themeBtn.addEventListener('click', () => themeModal.classList.add('open'));
+    themeClose.addEventListener('click', () => themeModal.classList.remove('open'));
+    themeModal.addEventListener('click', (e) => { if (e.target === themeModal) themeModal.classList.remove('open'); });
+    themeOptions.forEach(o => o.addEventListener('click', () => {
+        applyTheme(o.dataset.theme);
+        setTimeout(() => themeModal.classList.remove('open'), 150);
+    }));
+}
+
+// ====== AVATAR ======
+const AVATAR_OPTIONS = ['😎','😺','🦊','🦁','🐺','🐉','🐸','🐼','🦄','🐯','🐻','🐧','🦅','🦉','🐢','🐙','🦋','🌟','⚡','🔥','💎','👑','🎯','🚀','🎮','🤖','👻','💀','🧠','🎩'];
+
+function renderAvatarGrid() {
+    avatarGrid.innerHTML = AVATAR_OPTIONS.map(emoji =>
+        `<button class="avatar-option ${emoji === state.avatar ? 'selected' : ''}" data-avatar="${emoji}">${emoji}</button>`
+    ).join('');
+    avatarGrid.querySelectorAll('.avatar-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            state.avatar = opt.dataset.avatar;
+            localStorage.setItem('avatar', state.avatar);
+            avatarBtn.textContent = state.avatar;
+            renderAvatarGrid();
+            setTimeout(() => avatarModal.classList.remove('open'), 150);
+            // Update existing leaderboard entries for this user
+            if (state.registeredName) syncAvatarToLeaderboard();
+        });
+    });
+}
+
+async function syncAvatarToLeaderboard() {
+    const data = state.leaderboardData || await fetchLeaderboard();
+    const lname = state.registeredName.toLowerCase();
+    let changed = false;
+    data.forEach(e => {
+        if (e.name && e.name.toLowerCase() === lname && e.avatar !== state.avatar) {
+            e.avatar = state.avatar;
+            changed = true;
+        }
+    });
+    if (!changed) return;
+    if (isJsonBinConfigured()) {
+        try {
+            await fetch(`${JSONBIN_CONFIG.BASE_URL}/b/${JSONBIN_CONFIG.BIN_ID}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_CONFIG.API_KEY },
+                body: JSON.stringify({ scores: data })
+            });
+        } catch (err) { console.error('Avatar sync error:', err); }
+    } else {
+        localStorage.setItem('leaderboard', JSON.stringify(data));
+    }
+    state.leaderboardData = data;
+    if (leaderboardOverlay.classList.contains('open')) renderLeaderboard(data, state.leaderboardTab);
+}
+
+function initAvatar() {
+    avatarBtn.textContent = state.avatar;
+    avatarBtn.addEventListener('click', () => {
+        renderAvatarGrid();
+        avatarModal.classList.add('open');
+    });
+    avatarClose.addEventListener('click', () => avatarModal.classList.remove('open'));
+    avatarModal.addEventListener('click', (e) => { if (e.target === avatarModal) avatarModal.classList.remove('open'); });
+}
+
 // ====== PREVENT ZOOM ======
 document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 
@@ -1100,6 +1322,7 @@ function resetCurrentGame() {
     else if (state.gameType === 'reaction') resetReaction();
     else if (state.gameType === 'accuracy') resetAccuracy();
     else if (state.gameType === 'number') resetNumber();
+    else if (state.gameType === 'color') resetColorTest();
 }
 
 document.addEventListener('keydown', (e) => {
@@ -1157,8 +1380,9 @@ async function submitScore(name, value, mode, type) {
         return false;
     }
     const entry = { name, type, date: new Date().toISOString() };
+    if (state.avatar) entry.avatar = state.avatar;
     if (type === 'cps') { entry.cps = value; entry.mode = mode; }
-    else if (type === 'accuracy') { entry.score = value; }
+    else if (type === 'accuracy' || type === 'color') { entry.score = value; }
     else { entry.time = value; }  // reaction & number
     if (!isJsonBinConfigured()) {
         const data = getLocalLeaderboard();
@@ -1202,6 +1426,14 @@ function upsertScore(data, entry, type) {
         const idx = data.findIndex(e => e.type === 'number' && e.name.toLowerCase() === lname);
         if (idx >= 0) { if (entry.time < data[idx].time) { data[idx].time = entry.time; data[idx].date = entry.date; } }
         else data.push(entry);
+    } else if (type === 'color') {
+        const idx = data.findIndex(e => e.type === 'color' && e.name.toLowerCase() === lname);
+        if (idx >= 0) { if ((entry.score || 0) > (data[idx].score || 0)) { data[idx].score = entry.score; data[idx].date = entry.date; } }
+        else data.push(entry);
+    }
+    // Sync avatar on existing entries
+    if (entry.avatar) {
+        data.forEach(e => { if (e.name.toLowerCase() === lname) e.avatar = entry.avatar; });
     }
 }
 
@@ -1251,6 +1483,15 @@ function renderLeaderboard(data, tabType) {
         });
         entries = Object.values(bestPerPlayer).sort((a, b) => a.time - b.time);
         scoreFormat = (e) => `${(e.time / 1000).toFixed(2)} <span>sn</span>`;
+    } else if (tabType === 'color') {
+        const c = data.filter(e => e.type === 'color' && typeof e.score === 'number');
+        const bestPerPlayer = {};
+        c.forEach(e => {
+            const key = e.name.toLowerCase();
+            if (!bestPerPlayer[key] || e.score > bestPerPlayer[key].score) bestPerPlayer[key] = e;
+        });
+        entries = Object.values(bestPerPlayer).sort((a, b) => b.score - a.score);
+        scoreFormat = (e) => `${e.score} <span>doğru</span>`;
     }
 
     if (entries.length === 0) { leaderboardList.innerHTML = '<div class="lb-empty">Henüz skor yok! 🎮</div>'; return; }
@@ -1259,7 +1500,8 @@ function renderLeaderboard(data, tabType) {
         const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
         const isSelf = entry.name.toLowerCase() === playerName;
         const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
-        return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rankEmoji}</div><div class="lb-name">${escapeHtml(entry.name)}</div><div class="lb-score">${scoreFormat(entry)}</div></div>`;
+        const avatar = entry.avatar ? `<span class="lb-avatar">${entry.avatar}</span>` : '';
+        return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rankEmoji}</div><div class="lb-name">${avatar}${escapeHtml(entry.name)}</div><div class="lb-score">${scoreFormat(entry)}</div></div>`;
     }).join('');
 }
 
@@ -1304,6 +1546,7 @@ submitScoreBtn.addEventListener('click', async () => {
     else if (type === 'reaction') { value = state.reactionTimes.length ? Math.min(...state.reactionTimes) : 0; label = 'Reaksiyon'; }
     else if (type === 'accuracy') { value = state.lastAccuracyScore; label = 'Doğruluk'; }
     else if (type === 'number') { value = state.lastNumberTime; label = 'Sayı'; }
+    else if (type === 'color') { value = state.lastColorScore; label = 'Renk'; }
 
     if (!value || value <= 0) {
         submitScoreBtn.textContent = 'Önce test yap!'; submitScoreBtn.style.opacity = '0.6';

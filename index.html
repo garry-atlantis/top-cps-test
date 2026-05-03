@@ -12,6 +12,7 @@
         <!-- Header -->
         <header id="header">
             <button id="mute-btn" title="Sesi aç/kapat" aria-label="Sesi aç/kapat">🔊</button>
+            <button id="theme-btn" title="Tema" aria-label="Tema">🎨</button>
             <button id="changelog-btn" title="Güncellemeler" aria-label="Güncellemeler" style="display:none">📋</button>
             <button id="admin-btn" title="Admin Paneli" aria-label="Admin Paneli" style="display:none">⚙️</button>
             <h1>⚡ CPS TEST ⚡</h1>
@@ -24,6 +25,7 @@
             <button class="game-type-btn" data-type="reaction">Reaksiyon</button>
             <button class="game-type-btn" data-type="accuracy">Doğruluk</button>
             <button class="game-type-btn" data-type="number">Sayı</button>
+            <button class="game-type-btn" data-type="color">Renk</button>
         </div>
 
         <!-- CPS Game Section -->
@@ -176,10 +178,57 @@
             </div>
         </div>
 
+        <!-- Color Test Section -->
+        <div id="color-section" style="display:none">
+            <div id="color-info">
+                <div class="acc-info-card"><span class="acc-info-label">Doğru</span><span id="color-correct" class="acc-info-value">0</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Yanlış</span><span id="color-wrong" class="acc-info-value">0</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Süre</span><span id="color-timer-val" class="acc-info-value">30</span></div>
+            </div>
+            <div id="color-display-zone">
+                <div id="color-display-text">Başlamak için tıkla</div>
+                <div id="color-hint">Yazının <b>rengini</b> seç (yazdığını değil!)</div>
+            </div>
+            <div id="color-buttons">
+                <button class="color-btn" data-color="red" style="--c:#e74c3c">Kırmızı</button>
+                <button class="color-btn" data-color="blue" style="--c:#3498db">Mavi</button>
+                <button class="color-btn" data-color="green" style="--c:#2ecc71">Yeşil</button>
+                <button class="color-btn" data-color="yellow" style="--c:#f0c040">Sarı</button>
+                <button class="color-btn" data-color="purple" style="--c:#9b59b6">Mor</button>
+                <button class="color-btn" data-color="orange" style="--c:#e67e22">Turuncú</button>
+            </div>
+            <div id="color-stats">
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">En İyi</span><span id="stat-color-best" class="stat-value">—</span></div></div>
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">Doğruluk</span><span id="stat-color-pct" class="stat-value">—</span></div></div>
+            </div>
+        </div>
+
         <!-- Player Name -->
         <div id="player-name-container">
+            <button id="avatar-btn" title="Avatar seç">😎</button>
             <input type="text" id="player-name-input" placeholder="İsmini yaz..." maxlength="16" value="" readonly>
             <button id="change-name-btn" title="İsim değiştir">✏️</button>
+        </div>
+
+        <!-- Avatar Picker Modal -->
+        <div id="avatar-modal">
+            <div id="avatar-box">
+                <div id="avatar-header"><h2>Avatar Seç</h2><button id="avatar-close">×</button></div>
+                <div id="avatar-grid"></div>
+            </div>
+        </div>
+
+        <!-- Theme Picker Modal -->
+        <div id="theme-modal">
+            <div id="theme-box">
+                <div id="theme-header"><h2>🎨 Tema Seç</h2><button id="theme-close">×</button></div>
+                <div id="theme-grid">
+                    <button class="theme-option active" data-theme="dark"><div class="theme-preview" style="background:#1a1f26;border:2px solid #f0c040"></div><span>Karanlık</span></button>
+                    <button class="theme-option" data-theme="light"><div class="theme-preview" style="background:#f0f4f8;border:2px solid #e74c3c"></div><span>Aydınlık</span></button>
+                    <button class="theme-option" data-theme="neon"><div class="theme-preview" style="background:#0a0014;border:2px solid #ff00ff"></div><span>Neon</span></button>
+                    <button class="theme-option" data-theme="ocean"><div class="theme-preview" style="background:#0a1e3a;border:2px solid #48dbfb"></div><span>Okyanus</span></button>
+                </div>
+            </div>
         </div>
 
         <!-- Name Confirm Modal -->
@@ -212,6 +261,7 @@
                     <button class="lb-tab" data-type="reaction">Reaksiyon</button>
                     <button class="lb-tab" data-type="accuracy">Doğruluk</button>
                     <button class="lb-tab" data-type="number">Sayı</button>
+                    <button class="lb-tab" data-type="color">Renk</button>
                 </div>
                 <div id="leaderboard-list">
                     <div class="lb-loading">Yükleniyor...</div>
@@ -238,6 +288,7 @@
                 <button class="admin-tab" data-type="reaction">Reaksiyon</button>
                 <button class="admin-tab" data-type="accuracy">Doğruluk</button>
                 <button class="admin-tab" data-type="number">Sayı</button>
+                <button class="admin-tab" data-type="color">Renk</button>
             </div>
             <div id="admin-search-row">
                 <input id="admin-search" type="text" placeholder="İsim ara...">
