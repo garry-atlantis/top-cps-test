@@ -438,7 +438,7 @@ const GAME_TITLES = {
     reaction: '⚡ REAKSİYON TESTİ ⚡',
     accuracy: '🎯 DOĞRULUK TESTİ',
     number: '🔢 SAYI TESTİ',
-    color: '🎨 RENK TESTİ',
+    color: 'RENK TESTİ',
 };
 
 gameTypeBtns.forEach(btn => {
@@ -1396,30 +1396,161 @@ function initAvatar() {
 
     const uploadBtn = document.getElementById('avatar-upload-btn');
     const fileInput = document.getElementById('avatar-file-input');
-    const statusEl = document.getElementById('avatar-upload-status');
     if (!uploadBtn) return;
 
     uploadBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', async () => {
+    fileInput.addEventListener('change', () => {
         const file = fileInput.files[0];
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-            statusEl.className = 'error'; statusEl.textContent = 'Dosya çok büyük (max 5MB)';
+        if (file.size > 8 * 1024 * 1024) {
+            const statusEl = document.getElementById('avatar-upload-status');
+            statusEl.className = 'error'; statusEl.textContent = 'Dosya çok büyük (max 8MB)';
+            fileInput.value = '';
             return;
         }
-        uploadBtn.disabled = true;
-        const url = await uploadAvatarToImgBB(file, statusEl);
-        uploadBtn.disabled = false;
+        openCropModal(file);
         fileInput.value = '';
-        if (url) {
+    });
+
+    initCropModal();
+}
+
+// ====== AVATAR CROP ======
+const CROP_VIEWPORT = 260; // matches CSS
+const CROP_OUTPUT = 256;
+
+const cropState = {
+    image: null,       // HTMLImageElement
+    baseScale: 1,      // scale to cover viewport
+    zoom: 1,           // user zoom multiplier
+    tx: 0, ty: 0,      // image offset
+    dragging: false,
+    startX: 0, startY: 0,
+    startTx: 0, startTy: 0,
+};
+
+function openCropModal(file) {
+    const modal = document.getElementById('crop-modal');
+    const imgEl = document.getElementById('crop-image');
+    const status = document.getElementById('crop-status');
+    status.textContent = ''; status.className = '';
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            cropState.image = img;
+            imgEl.src = e.target.result;
+            imgEl.style.width = img.naturalWidth + 'px';
+            imgEl.style.height = img.naturalHeight + 'px';
+            // Cover scale
+            cropState.baseScale = Math.max(CROP_VIEWPORT / img.naturalWidth, CROP_VIEWPORT / img.naturalHeight);
+            cropState.zoom = 1;
+            const eff = cropState.baseScale * cropState.zoom;
+            cropState.tx = (CROP_VIEWPORT - img.naturalWidth * eff) / 2;
+            cropState.ty = (CROP_VIEWPORT - img.naturalHeight * eff) / 2;
+            document.getElementById('crop-zoom').value = '1';
+            applyCropTransform();
+            modal.classList.add('open');
+        };
+        img.onerror = () => { status.className = 'error'; status.textContent = 'Resim okunamadı'; };
+        img.src = e.target.result;
+    };
+    reader.onerror = () => { status.className = 'error'; status.textContent = 'Dosya okunamadı'; };
+    reader.readAsDataURL(file);
+}
+
+function applyCropTransform() {
+    const imgEl = document.getElementById('crop-image');
+    const eff = cropState.baseScale * cropState.zoom;
+    // Clamp so image always covers viewport
+    const minTx = CROP_VIEWPORT - cropState.image.naturalWidth * eff;
+    const minTy = CROP_VIEWPORT - cropState.image.naturalHeight * eff;
+    cropState.tx = Math.min(0, Math.max(minTx, cropState.tx));
+    cropState.ty = Math.min(0, Math.max(minTy, cropState.ty));
+    imgEl.style.transform = `translate(${cropState.tx}px, ${cropState.ty}px) scale(${eff})`;
+}
+
+function initCropModal() {
+    const modal = document.getElementById('crop-modal');
+    const viewport = document.getElementById('crop-viewport');
+    const zoomSlider = document.getElementById('crop-zoom');
+    const cancelBtn = document.getElementById('crop-cancel');
+    const applyBtn = document.getElementById('crop-apply');
+    const status = document.getElementById('crop-status');
+
+    cancelBtn.addEventListener('click', () => modal.classList.remove('open'));
+
+    zoomSlider.addEventListener('input', () => {
+        if (!cropState.image) return;
+        const oldEff = cropState.baseScale * cropState.zoom;
+        cropState.zoom = parseFloat(zoomSlider.value);
+        const newEff = cropState.baseScale * cropState.zoom;
+        // Zoom around viewport center
+        const cx = CROP_VIEWPORT / 2, cy = CROP_VIEWPORT / 2;
+        cropState.tx = cx - (cx - cropState.tx) * (newEff / oldEff);
+        cropState.ty = cy - (cy - cropState.ty) * (newEff / oldEff);
+        applyCropTransform();
+    });
+
+    // Pointer drag
+    viewport.addEventListener('pointerdown', (e) => {
+        if (!cropState.image) return;
+        cropState.dragging = true;
+        cropState.startX = e.clientX;
+        cropState.startY = e.clientY;
+        cropState.startTx = cropState.tx;
+        cropState.startTy = cropState.ty;
+        viewport.setPointerCapture(e.pointerId);
+    });
+    viewport.addEventListener('pointermove', (e) => {
+        if (!cropState.dragging) return;
+        cropState.tx = cropState.startTx + (e.clientX - cropState.startX);
+        cropState.ty = cropState.startTy + (e.clientY - cropState.startY);
+        applyCropTransform();
+    });
+    viewport.addEventListener('pointerup', () => { cropState.dragging = false; });
+    viewport.addEventListener('pointercancel', () => { cropState.dragging = false; });
+
+    applyBtn.addEventListener('click', async () => {
+        if (!cropState.image) return;
+        applyBtn.disabled = true;
+        status.className = ''; status.textContent = 'Yükleniyor...';
+        try {
+            const eff = cropState.baseScale * cropState.zoom;
+            const sx = -cropState.tx / eff;
+            const sy = -cropState.ty / eff;
+            const sw = CROP_VIEWPORT / eff;
+            const sh = CROP_VIEWPORT / eff;
+            const canvas = document.createElement('canvas');
+            canvas.width = CROP_OUTPUT; canvas.height = CROP_OUTPUT;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, CROP_OUTPUT, CROP_OUTPUT);
+            ctx.drawImage(cropState.image, sx, sy, sw, sh, 0, 0, CROP_OUTPUT, CROP_OUTPUT);
+            const base64 = canvas.toDataURL('image/jpeg', 0.88).split(',')[1];
+
+            const formData = new FormData();
+            formData.append('image', base64);
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: 'POST', body: formData,
+            });
+            const json = await res.json();
+            if (!res.ok || !json.success) throw new Error(json.error?.message || 'Yükleme hatası');
+            const url = json.data.display_url || json.data.url;
+            status.className = 'success'; status.textContent = '✓ Yüklendi!';
             setAvatar(url);
             renderAvatarGrid();
             setTimeout(() => {
+                modal.classList.remove('open');
                 avatarModal.classList.remove('open');
-                statusEl.textContent = '';
-                statusEl.className = '';
-            }, 800);
+                status.textContent = '';
+            }, 700);
+        } catch (err) {
+            status.className = 'error';
+            status.textContent = err.message || 'Yükleme başarısız';
         }
+        applyBtn.disabled = false;
     });
 }
 
