@@ -542,26 +542,75 @@ function endGame() {
             localStorage.setItem('nameChangeUsed', 'true');
             changeNameBtn.style.display = 'none';
         }
-        autoSubmitCps(name, state.currentCps, state.timeLimit);
+        autoSubmitIfBest('cps', state.currentCps, state.timeLimit);
     }
 }
 
-async function autoSubmitCps(name, cps, mode) {
+// ====== UNIFIED AUTO SUBMIT ======
+// Submits score to leaderboard ONLY if it's a new personal best.
+// Type config: cps/accuracy higher=better, reaction/number lower=better.
+const AUTO_SUBMIT_CONFIG = {
+    cps:      { field: 'cps',   higherBetter: true,  matchType: (e) => !e.type || e.type === 'cps' },
+    reaction: { field: 'time',  higherBetter: false, matchType: (e) => e.type === 'reaction' },
+    accuracy: { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'accuracy' },
+    number:   { field: 'time',  higherBetter: false, matchType: (e) => e.type === 'number' },
+};
+
+async function autoSubmitIfBest(type, value, mode = null) {
+    const name = playerNameInput.value.trim();
+    if (!name || isInappropriateName(name)) return;
+    if (!value || value <= 0) return;
+
+    // Auto-register on first submission
+    if (!state.registeredName) {
+        state.registeredName = name;
+        localStorage.setItem('registeredName', name);
+        playerNameInput.readOnly = true;
+        state.nameChangeUsed = true;
+        localStorage.setItem('nameChangeUsed', 'true');
+        if (changeNameBtn) changeNameBtn.style.display = 'none';
+        if (typeof updateChangelogVisibility === 'function') updateChangelogVisibility();
+    }
+
+    const cfg = AUTO_SUBMIT_CONFIG[type];
+    if (!cfg) return;
+
     const prevData = await fetchLeaderboard();
-    const prevCpsEntries = prevData.filter(e => (!e.type || e.type === 'cps') && e.name.toLowerCase() === name.toLowerCase());
-    const prevBest = prevCpsEntries.length > 0 ? Math.max(...prevCpsEntries.map(e => e.cps)) : 0;
-    const isNewBest = cps > prevBest;
-    const success = await submitScore(name, cps, mode, 'cps');
-    if (success && isNewBest) {
-        const data = state.leaderboardData || [];
-        const bestPerPlayer = {};
-        data.filter(e => e.type === 'cps').forEach(e => {
-            const key = e.name.toLowerCase();
-            if (!bestPerPlayer[key] || e.cps > bestPerPlayer[key].cps) bestPerPlayer[key] = e;
-        });
-        const sorted = Object.values(bestPerPlayer).sort((a, b) => b.cps - a.cps);
-        const rank = sorted.findIndex(e => e.name.toLowerCase() === name.toLowerCase()) + 1;
-        if (rank > 0) showRankNotification(rank, 'cps');
+    const lname = name.toLowerCase();
+    const prevEntries = prevData.filter(e => cfg.matchType(e) && e.name.toLowerCase() === lname);
+    const prevValues = prevEntries.map(e => e[cfg.field]).filter(v => typeof v === 'number');
+
+    let isNewBest;
+    if (prevValues.length === 0) isNewBest = true;
+    else if (cfg.higherBetter) isNewBest = value > Math.max(...prevValues);
+    else isNewBest = value < Math.min(...prevValues);
+
+    if (!isNewBest) return; // Don't submit, don't notify
+
+    const success = await submitScore(name, value, mode, type);
+    if (!success) return;
+
+    // Compute rank from updated leaderboard
+    const data = state.leaderboardData || [];
+    const filtered = data.filter(cfg.matchType);
+    const bestPerPlayer = {};
+    filtered.forEach(e => {
+        const k = e.name.toLowerCase();
+        const v = e[cfg.field];
+        if (typeof v !== 'number') return;
+        if (!bestPerPlayer[k] || (cfg.higherBetter ? v > bestPerPlayer[k][cfg.field] : v < bestPerPlayer[k][cfg.field])) {
+            bestPerPlayer[k] = e;
+        }
+    });
+    const sorted = Object.values(bestPerPlayer).sort((a, b) =>
+        cfg.higherBetter ? b[cfg.field] - a[cfg.field] : a[cfg.field] - b[cfg.field]
+    );
+    const rank = sorted.findIndex(e => e.name.toLowerCase() === lname) + 1;
+    if (rank > 0) showRankNotification(rank, type);
+
+    // Refresh leaderboard view if open
+    if (leaderboardOverlay.classList.contains('open') && state.leaderboardTab === type) {
+        renderLeaderboard(data, type);
     }
 }
 
@@ -676,24 +725,10 @@ function handleReactionClick(e) {
                         changeNameBtn.style.display = 'none';
                     }
                     const bestTime = Math.min(...state.reactionTimes);
-                    autoSubmitReaction(name, bestTime);
+                    autoSubmitIfBest('reaction', bestTime);
                 }
             }
             break;
-    }
-}
-
-async function autoSubmitReaction(name, avgTime) {
-    const prevData = await fetchLeaderboard();
-    const prevEntry = prevData.find(e => e.type === 'reaction' && e.name.toLowerCase() === name.toLowerCase());
-    const prevBest = prevEntry ? prevEntry.time : Infinity;
-    const isNewBest = avgTime < prevBest;
-    const success = await submitScore(name, avgTime, null, 'reaction');
-    if (success && isNewBest) {
-        const data = state.leaderboardData || [];
-        const sorted = data.filter(e => e.type === 'reaction').sort((a, b) => a.time - b.time);
-        const rank = sorted.findIndex(e => e.name.toLowerCase() === name.toLowerCase()) + 1;
-        if (rank > 0) showRankNotification(rank, 'reaction');
     }
 }
 
@@ -736,10 +771,12 @@ function createNotificationStack() {
     return c;
 }
 
+const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', number: 'Sayı' };
+
 function showRankNotification(rank, type) {
-    const label = type === 'cps' ? 'CPS' : 'Reaksiyon';
+    const label = TYPE_LABELS[type] || type;
     const rankText = rank === 1 ? '🥇 1.' : rank === 2 ? '🥈 2.' : rank === 3 ? '🥉 3.' : `${rank}.`;
-    showNotification(`${label} sıralamasında ${rankText} sıradasın!`, 'rank');
+    showNotification(`Yeni rekor! ${label} sıralamasında ${rankText} sıradasın!`, 'rank');
     if (rank <= 3) launchConfetti();
 }
 
@@ -909,12 +946,9 @@ function endAccuracy() {
         localStorage.setItem('accuracyBest', state.accuracyHits);
         statAccBest.textContent = state.accuracyHits;
     }
-    // Auto-submit if registered
-    const name = playerNameInput.value.trim();
-    if (name && state.registeredName && state.accuracyHits > 0) {
-        autoSubmitAccuracy(name, state.accuracyHits);
-    }
     playEndSound();
+    // Auto-submit only if new personal best
+    autoSubmitIfBest('accuracy', state.accuracyHits);
 }
 
 function handleAccuracyClick(e) {
@@ -1031,57 +1065,13 @@ function endNumberGame() {
         statNumBest.textContent = (elapsed / 1000).toFixed(2) + 's';
     }
     playEndSound();
-    const name = playerNameInput.value.trim();
-    if (name && state.registeredName) {
-        autoSubmitNumber(name, elapsed);
-    }
+    autoSubmitIfBest('number', elapsed);
 }
 
 numberStartBtn.addEventListener('click', () => {
     if (state.numberState === 'running') return;
     startNumberGame();
 });
-
-// ====== AUTO SUBMIT (accuracy/number) ======
-async function autoSubmitAccuracy(name, hits) {
-    const data = await fetchLeaderboard();
-    const prevEntries = data.filter(e => e.type === 'accuracy' && e.name.toLowerCase() === name.toLowerCase());
-    const prevBest = prevEntries.length > 0 ? Math.max(...prevEntries.map(e => e.score || 0)) : 0;
-    const isNewBest = hits > prevBest;
-    const success = await submitScore(name, hits, null, 'accuracy');
-    if (success && isNewBest) {
-        const all = state.leaderboardData || [];
-        const accEntries = all.filter(e => e.type === 'accuracy');
-        const bestPerPlayer = {};
-        accEntries.forEach(e => {
-            const k = e.name.toLowerCase();
-            if (!bestPerPlayer[k] || (e.score || 0) > (bestPerPlayer[k].score || 0)) bestPerPlayer[k] = e;
-        });
-        const sorted = Object.values(bestPerPlayer).sort((a, b) => (b.score || 0) - (a.score || 0));
-        const rank = sorted.findIndex(e => e.name.toLowerCase() === name.toLowerCase()) + 1;
-        if (rank > 0) showRankNotification(rank, 'accuracy');
-    }
-}
-
-async function autoSubmitNumber(name, time) {
-    const data = await fetchLeaderboard();
-    const prevEntries = data.filter(e => e.type === 'number' && e.name.toLowerCase() === name.toLowerCase());
-    const prevBest = prevEntries.length > 0 ? Math.min(...prevEntries.map(e => e.time)) : Infinity;
-    const isNewBest = time < prevBest;
-    const success = await submitScore(name, time, null, 'number');
-    if (success && isNewBest) {
-        const all = state.leaderboardData || [];
-        const numEntries = all.filter(e => e.type === 'number');
-        const bestPerPlayer = {};
-        numEntries.forEach(e => {
-            const k = e.name.toLowerCase();
-            if (!bestPerPlayer[k] || e.time < bestPerPlayer[k].time) bestPerPlayer[k] = e;
-        });
-        const sorted = Object.values(bestPerPlayer).sort((a, b) => a.time - b.time);
-        const rank = sorted.findIndex(e => e.name.toLowerCase() === name.toLowerCase()) + 1;
-        if (rank > 0) showRankNotification(rank, 'number');
-    }
-}
 
 // ====== PREVENT ZOOM ======
 document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
