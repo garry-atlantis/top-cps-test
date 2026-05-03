@@ -28,6 +28,8 @@ const JSONBIN_CONFIG = {
     BASE_URL: 'https://api.jsonbin.io/v3',
 };
 
+const IMGBB_API_KEY = '4f95844c7578cccb02888e4a96559243';
+
 const state = {
     clicks: [], totalClicks: 0,
     maxCps: parseInt(localStorage.getItem('maxCps')) || 0,
@@ -1260,21 +1262,101 @@ function initTheme() {
 // ====== AVATAR ======
 const AVATAR_OPTIONS = ['😎','😺','🦊','🦁','🐺','🐉','🐸','🐼','🦄','🐯','🐻','🐧','🦅','🦉','🐢','🐙','🦋','🌟','⚡','🔥','💎','👑','🎯','🚀','🎮','🤖','👻','💀','🧠','🎩'];
 
+function isAvatarUrl(av) {
+    return typeof av === 'string' && /^https?:\/\//.test(av);
+}
+
+function avatarHtml(av, cls = 'lb-avatar') {
+    if (!av) return '';
+    if (isAvatarUrl(av)) return `<img src="${av}" class="${cls}-img" alt="" referrerpolicy="no-referrer">`;
+    return `<span class="${cls}">${av}</span>`;
+}
+
+function setAvatarButton(av) {
+    if (!avatarBtn) return;
+    if (isAvatarUrl(av)) {
+        avatarBtn.innerHTML = `<img src="${av}" alt="" referrerpolicy="no-referrer">`;
+    } else {
+        avatarBtn.textContent = av;
+    }
+}
+
+function setAvatar(av) {
+    state.avatar = av;
+    localStorage.setItem('avatar', av);
+    setAvatarButton(av);
+    if (state.registeredName) syncAvatarToLeaderboard();
+}
+
 function renderAvatarGrid() {
     avatarGrid.innerHTML = AVATAR_OPTIONS.map(emoji =>
         `<button class="avatar-option ${emoji === state.avatar ? 'selected' : ''}" data-avatar="${emoji}">${emoji}</button>`
     ).join('');
     avatarGrid.querySelectorAll('.avatar-option').forEach(opt => {
         opt.addEventListener('click', () => {
-            state.avatar = opt.dataset.avatar;
-            localStorage.setItem('avatar', state.avatar);
-            avatarBtn.textContent = state.avatar;
+            setAvatar(opt.dataset.avatar);
             renderAvatarGrid();
             setTimeout(() => avatarModal.classList.remove('open'), 150);
-            // Update existing leaderboard entries for this user
-            if (state.registeredName) syncAvatarToLeaderboard();
         });
     });
+}
+
+// Resize an image file to a max dimension and return base64 (without data: prefix).
+function resizeImageFile(file, maxSize = 128) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onerror = reject;
+            img.onload = () => {
+                const ratio = Math.min(maxSize / img.width, maxSize / img.height, 1);
+                const w = Math.round(img.width * ratio);
+                const h = Math.round(img.height * ratio);
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                resolve(dataUrl.split(',')[1]);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+async function uploadAvatarToImgBB(file, statusEl) {
+    statusEl.className = '';
+    statusEl.textContent = 'Resim hazırlanıyor...';
+    let base64;
+    try {
+        base64 = await resizeImageFile(file, 128);
+    } catch (err) {
+        statusEl.className = 'error'; statusEl.textContent = 'Resim okunamadı';
+        return null;
+    }
+    statusEl.textContent = 'Yükleniyor...';
+    try {
+        const formData = new FormData();
+        formData.append('image', base64);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: 'POST',
+            body: formData,
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+            statusEl.className = 'error';
+            statusEl.textContent = json.error?.message || 'Yükleme başarısız';
+            return null;
+        }
+        statusEl.className = 'success';
+        statusEl.textContent = '✓ Yüklendi!';
+        return json.data.display_url || json.data.url;
+    } catch (err) {
+        statusEl.className = 'error';
+        statusEl.textContent = 'Bağlantı hatası';
+        return null;
+    }
 }
 
 async function syncAvatarToLeaderboard() {
@@ -1304,13 +1386,41 @@ async function syncAvatarToLeaderboard() {
 }
 
 function initAvatar() {
-    avatarBtn.textContent = state.avatar;
+    setAvatarButton(state.avatar);
     avatarBtn.addEventListener('click', () => {
         renderAvatarGrid();
         avatarModal.classList.add('open');
     });
     avatarClose.addEventListener('click', () => avatarModal.classList.remove('open'));
     avatarModal.addEventListener('click', (e) => { if (e.target === avatarModal) avatarModal.classList.remove('open'); });
+
+    const uploadBtn = document.getElementById('avatar-upload-btn');
+    const fileInput = document.getElementById('avatar-file-input');
+    const statusEl = document.getElementById('avatar-upload-status');
+    if (!uploadBtn) return;
+
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+            statusEl.className = 'error'; statusEl.textContent = 'Dosya çok büyük (max 5MB)';
+            return;
+        }
+        uploadBtn.disabled = true;
+        const url = await uploadAvatarToImgBB(file, statusEl);
+        uploadBtn.disabled = false;
+        fileInput.value = '';
+        if (url) {
+            setAvatar(url);
+            renderAvatarGrid();
+            setTimeout(() => {
+                avatarModal.classList.remove('open');
+                statusEl.textContent = '';
+                statusEl.className = '';
+            }, 800);
+        }
+    });
 }
 
 // ====== PREVENT ZOOM ======
@@ -1500,7 +1610,7 @@ function renderLeaderboard(data, tabType) {
         const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
         const isSelf = entry.name.toLowerCase() === playerName;
         const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
-        const avatar = entry.avatar ? `<span class="lb-avatar">${entry.avatar}</span>` : '';
+        const avatar = avatarHtml(entry.avatar, 'lb-avatar');
         return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rankEmoji}</div><div class="lb-name">${avatar}${escapeHtml(entry.name)}</div><div class="lb-score">${scoreFormat(entry)}</div></div>`;
     }).join('');
 }

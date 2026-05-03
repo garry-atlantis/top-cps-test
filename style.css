@@ -2010,6 +2010,72 @@ body {
     display: inline-block;
 }
 
+.lb-avatar-img {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 6px;
+    vertical-align: middle;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+#avatar-btn img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+#avatar-upload-row {
+    padding: 14px 16px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#avatar-upload-btn {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.9rem;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 2px solid rgba(46, 204, 113, 0.5);
+    background: rgba(46, 204, 113, 0.12);
+    color: #2ecc71;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#avatar-upload-btn:hover { background: rgba(46, 204, 113, 0.22); }
+#avatar-upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+#avatar-upload-status {
+    font-size: 0.75rem;
+    color: #7a8a9a;
+    text-align: center;
+    min-height: 16px;
+}
+
+#avatar-upload-status.error { color: #e74c3c; }
+#avatar-upload-status.success { color: #2ecc71; }
+
+.avatar-section-label {
+    padding: 8px 16px 0;
+    font-size: 0.75rem;
+    color: #7a8a9a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 800;
+}
+
+.avatar-option img {
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
 /* ========== THEME PICKER ========== */
 #theme-grid {
     display: grid;
