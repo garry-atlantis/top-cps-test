@@ -417,8 +417,8 @@ function updateChangelogVisibility() {
     if (adminBtn) adminBtn.style.display = isAdmin ? '' : 'none';
 }
 
-function hasUnlimitedNameChange() {
-    const name = (state.registeredName || playerNameInput.value.trim()).toLowerCase();
+function hasUnlimitedNameChange(nameToCheck = null) {
+    const name = (nameToCheck || state.registeredName || playerNameInput.value.trim()).toLowerCase();
     return name === 'shoso';
 }
 
@@ -633,11 +633,11 @@ async function autoSubmitIfBest(type, value, mode = null) {
         state.registeredName = name;
         localStorage.setItem('registeredName', name);
         playerNameInput.readOnly = true;
-        if (!hasUnlimitedNameChange()) {
+        if (!hasUnlimitedNameChange(name)) {
             state.nameChangeUsed = true;
             localStorage.setItem('nameChangeUsed', 'true');
         }
-        if (changeNameBtn && !hasUnlimitedNameChange()) changeNameBtn.style.display = 'none';
+        if (changeNameBtn && !hasUnlimitedNameChange(name)) changeNameBtn.style.display = 'none';
         if (typeof updateChangelogVisibility === 'function') updateChangelogVisibility();
     }
 
