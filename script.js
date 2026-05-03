@@ -241,7 +241,7 @@ function init() {
     playerNameInput.value = savedName;
     if (state.registeredName) {
         playerNameInput.readOnly = true;
-        if (state.nameChangeUsed) changeNameBtn.style.display = 'none';
+        if (state.nameChangeUsed && !hasUnlimitedNameChange()) changeNameBtn.style.display = 'none';
     }
 
     // Mute button setup
@@ -415,6 +415,11 @@ function updateChangelogVisibility() {
     const isAdmin = name === 'everseekn';
     btn.style.display = isAdmin ? '' : 'none';
     if (adminBtn) adminBtn.style.display = isAdmin ? '' : 'none';
+}
+
+function hasUnlimitedNameChange() {
+    const name = (state.registeredName || playerNameInput.value.trim()).toLowerCase();
+    return name === 'shoso';
 }
 
 function forceInappropriateRename() {
@@ -628,9 +633,11 @@ async function autoSubmitIfBest(type, value, mode = null) {
         state.registeredName = name;
         localStorage.setItem('registeredName', name);
         playerNameInput.readOnly = true;
-        state.nameChangeUsed = true;
-        localStorage.setItem('nameChangeUsed', 'true');
-        if (changeNameBtn) changeNameBtn.style.display = 'none';
+        if (!hasUnlimitedNameChange()) {
+            state.nameChangeUsed = true;
+            localStorage.setItem('nameChangeUsed', 'true');
+        }
+        if (changeNameBtn && !hasUnlimitedNameChange()) changeNameBtn.style.display = 'none';
         if (typeof updateChangelogVisibility === 'function') updateChangelogVisibility();
     }
 
@@ -893,8 +900,12 @@ nameModalConfirm.addEventListener('click', async () => {
     const oldName = state.registeredName;
     playerNameInput.value = newName; localStorage.setItem('playerName', newName);
     state.registeredName = newName; localStorage.setItem('registeredName', newName);
-    playerNameInput.readOnly = true; changeNameBtn.style.display = 'none';
-    state.nameChangeUsed = true; localStorage.setItem('nameChangeUsed', 'true');
+    playerNameInput.readOnly = true;
+    if (!hasUnlimitedNameChange()) {
+        changeNameBtn.style.display = 'none';
+        state.nameChangeUsed = true;
+        localStorage.setItem('nameChangeUsed', 'true');
+    }
     if (oldName && oldName.toLowerCase() !== newName.toLowerCase()) {
         const data = state.leaderboardData || await fetchLeaderboard();
         let changed = false;
