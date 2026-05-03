@@ -1360,7 +1360,8 @@ async function uploadAvatarToImgBB(file, statusEl) {
 }
 
 async function syncAvatarToLeaderboard() {
-    const data = state.leaderboardData || await fetchLeaderboard();
+    // Always fetch fresh data to avoid overwriting recent submissions from other players
+    const data = await fetchLeaderboard(true);
     const lname = state.registeredName.toLowerCase();
     let changed = false;
     data.forEach(e => {
