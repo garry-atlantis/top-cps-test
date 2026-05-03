@@ -935,6 +935,14 @@ nameModalConfirm.addEventListener('click', async () => {
                     try { await fetch(`${JSONBIN_CONFIG.BASE_URL}/b/${JSONBIN_CONFIG.BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_CONFIG.API_KEY }, body: JSON.stringify({ scores: data }) }); } catch (err) { console.error('Rename error:', err); }
                 } else { localStorage.setItem('leaderboard', JSON.stringify(data)); }
                 state.leaderboardData = data;
+                // Force cache refresh
+                state.lbCacheTime = 0;
+                localStorage.setItem('leaderboardCache', JSON.stringify(data));
+                // Refresh leaderboard if visible
+                if (leaderboardOverlay.classList.contains('open')) {
+                    await fetchLeaderboard(true);
+                    renderLeaderboard(state.leaderboardData, state.leaderboardTab);
+                }
             }
         } catch (err) {
             console.error('Leaderboard update error:', err);
