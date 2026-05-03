@@ -243,6 +243,8 @@ function init() {
         playerNameInput.readOnly = true;
         if (hasUnlimitedNameChange()) {
             changeNameBtn.style.display = '';
+            state.nameChangeUsed = false;
+            localStorage.removeItem('nameChangeUsed');
         } else if (state.nameChangeUsed) {
             changeNameBtn.style.display = 'none';
         }
