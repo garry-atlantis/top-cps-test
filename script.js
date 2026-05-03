@@ -435,10 +435,10 @@ function forceInappropriateRename() {
 
 // ====== GAME TYPE SELECTOR ======
 const GAME_TITLES = {
-    cps: '⚡ CPS TEST ⚡',
-    reaction: '⚡ REAKSİYON TESTİ ⚡',
-    accuracy: '🎯 DOĞRULUK TESTİ',
-    number: '🔢 SAYI TESTİ',
+    cps: 'CPS TEST',
+    reaction: 'REAKSİYON TESTİ',
+    accuracy: 'DOĞRULUK TESTİ',
+    number: 'SAYI TESTİ',
     color: 'RENK TESTİ',
 };
 
