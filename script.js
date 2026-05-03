@@ -275,6 +275,7 @@ function init() {
     // Theme & Avatar
     initTheme();
     initAvatar();
+    initProfile();
 }
 
 function initAdminPanel() {
@@ -1414,6 +1415,144 @@ function initAvatar() {
     });
 
     initCropModal();
+}
+
+// ====== PROFILE MODAL ======
+const PROFILE_TYPES = [
+    { type: 'cps',      icon: '⚡', label: 'CPS',      field: 'cps',   higherBetter: true,
+      fmt: (e) => `${(e.cps || 0).toFixed(2)} CPS` },
+    { type: 'reaction', icon: '🎯', label: 'Reaksiyon', field: 'time',  higherBetter: false,
+      fmt: (e) => `${Math.round(e.time)} ms` },
+    { type: 'accuracy', icon: '🎯', label: 'Doğruluk',  field: 'score', higherBetter: true,
+      fmt: (e) => `${e.score} vuruş` },
+    { type: 'number',   icon: '🔢', label: 'Sayı',      field: 'time',  higherBetter: false,
+      fmt: (e) => `${(e.time / 1000).toFixed(2)} sn` },
+    { type: 'color',    icon: '🌈', label: 'Renk',      field: 'score', higherBetter: true,
+      fmt: (e) => `${e.score} doğru` },
+];
+
+function getBestPerPlayer(entries, field, higherBetter) {
+    const best = {};
+    entries.forEach(e => {
+        const k = (e.name || '').toLowerCase();
+        if (!k) return;
+        const v = e[field];
+        if (typeof v !== 'number') return;
+        if (!best[k] || (higherBetter ? v > best[k][field] : v < best[k][field])) best[k] = e;
+    });
+    return Object.values(best);
+}
+
+function matchesType(e, type) {
+    if (type === 'cps') return !e.type || e.type === 'cps';
+    return e.type === type;
+}
+
+async function openProfileModal() {
+    const modal = document.getElementById('profile-modal');
+    const avatarEl = document.getElementById('profile-avatar');
+    const nameEl = document.getElementById('profile-name');
+    const sinceEl = document.getElementById('profile-since');
+    const statsEl = document.getElementById('profile-stats-grid');
+    const recordsEl = document.getElementById('profile-records-list');
+
+    const myName = (state.registeredName || playerNameInput.value.trim() || '').trim();
+    if (!myName) {
+        nameEl.textContent = 'İsim yok';
+        sinceEl.textContent = 'Önce isim belirle';
+        statsEl.innerHTML = '';
+        recordsEl.innerHTML = '<div style="color:#7a8a9a;text-align:center;padding:12px">Profilini görmek için önce isim belirle</div>';
+        avatarEl.innerHTML = state.avatar ? avatarHtml(state.avatar, 'lb-avatar').replace('lb-avatar', 'profile-av-inner') : '👤';
+        if (isAvatarUrl(state.avatar)) avatarEl.innerHTML = `<img src="${state.avatar}" alt="" referrerpolicy="no-referrer">`;
+        else avatarEl.textContent = state.avatar || '👤';
+        modal.classList.add('open');
+        return;
+    }
+
+    // Show shell + loading
+    if (isAvatarUrl(state.avatar)) avatarEl.innerHTML = `<img src="${state.avatar}" alt="" referrerpolicy="no-referrer">`;
+    else avatarEl.textContent = state.avatar || '👤';
+    nameEl.textContent = myName;
+    sinceEl.textContent = 'Yükleniyor...';
+    statsEl.innerHTML = '';
+    recordsEl.innerHTML = '<div style="color:#7a8a9a;text-align:center;padding:12px">Yükleniyor...</div>';
+    modal.classList.add('open');
+
+    const data = await fetchLeaderboard();
+    const lname = myName.toLowerCase();
+    const myEntries = data.filter(e => e.name && e.name.toLowerCase() === lname);
+
+    // Earliest date
+    let earliest = null;
+    myEntries.forEach(e => {
+        if (e.date) {
+            const d = new Date(e.date);
+            if (!earliest || d < earliest) earliest = d;
+        }
+    });
+    sinceEl.textContent = earliest
+        ? `Üye: ${earliest.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}`
+        : 'Yeni üye';
+
+    // Stats: total records, top-3 count, average rank
+    let totalRecords = 0;
+    let topThreeCount = 0;
+    let bestRank = null;
+    const records = [];
+
+    PROFILE_TYPES.forEach(({ type, icon, label, field, higherBetter, fmt }) => {
+        const typeEntries = data.filter(e => matchesType(e, type) && typeof e[field] === 'number');
+        const bestPlayers = getBestPerPlayer(typeEntries, field, higherBetter);
+        bestPlayers.sort((a, b) => higherBetter ? b[field] - a[field] : a[field] - b[field]);
+        const myRank = bestPlayers.findIndex(e => e.name.toLowerCase() === lname) + 1;
+        const myEntry = bestPlayers.find(e => e.name.toLowerCase() === lname);
+
+        if (myEntry) {
+            totalRecords++;
+            if (myRank <= 3) topThreeCount++;
+            if (bestRank === null || myRank < bestRank) bestRank = myRank;
+        }
+
+        records.push({ icon, label, myEntry, myRank, totalPlayers: bestPlayers.length, fmt });
+    });
+
+    // Render stats
+    statsEl.innerHTML = `
+        <div class="profile-stat"><span class="profile-stat-label">Rekorlar</span><span class="profile-stat-value">${totalRecords}/${PROFILE_TYPES.length}</span></div>
+        <div class="profile-stat"><span class="profile-stat-label">İlk 3</span><span class="profile-stat-value">${topThreeCount}</span></div>
+        <div class="profile-stat"><span class="profile-stat-label">En İyi Sıra</span><span class="profile-stat-value">${bestRank ? '#' + bestRank : '—'}</span></div>
+        <div class="profile-stat"><span class="profile-stat-label">Toplam Skor</span><span class="profile-stat-value">${myEntries.length}</span></div>
+    `;
+
+    // Render records
+    recordsEl.innerHTML = records.map(r => {
+        if (!r.myEntry) {
+            return `<div class="profile-record">
+                <span class="profile-record-icon">${r.icon}</span>
+                <span class="profile-record-name">${r.label}</span>
+                <span class="profile-record-score empty">Henüz yok</span>
+                <span class="profile-record-rank empty">—</span>
+            </div>`;
+        }
+        const rankClass = r.myRank === 1 ? 'top1' : r.myRank <= 3 ? 'top3' : '';
+        const rankText = r.myRank === 1 ? '🥇' : r.myRank === 2 ? '🥈' : r.myRank === 3 ? '🥉' : `#${r.myRank}`;
+        return `<div class="profile-record">
+            <span class="profile-record-icon">${r.icon}</span>
+            <span class="profile-record-name">${r.label}</span>
+            <span class="profile-record-score">${r.fmt(r.myEntry)}</span>
+            <span class="profile-record-rank ${rankClass}">${rankText}</span>
+        </div>`;
+    }).join('');
+}
+
+function initProfile() {
+    const btn = document.getElementById('profile-btn');
+    const modal = document.getElementById('profile-modal');
+    const closeBtn = document.getElementById('profile-close');
+    if (!btn) return;
+    btn.addEventListener('click', openProfileModal);
+    closeBtn.addEventListener('click', () => modal.classList.remove('open'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
 }
 
 // ====== AVATAR CROP ======
