@@ -1948,6 +1948,12 @@ body {
     cursor: pointer;
     transition: all 0.2s;
     flex-shrink: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    overflow: hidden;
 }
 
 #avatar-btn:hover {
