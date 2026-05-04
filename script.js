@@ -544,10 +544,12 @@ function handleClick(e) {
     if (!state.isRunning) { startCountdown(); return; }
     state.clicks.push(Date.now());
     state.totalClicks++;
-    clickButton.classList.add('pressing');
-    setTimeout(() => clickButton.classList.remove('pressing'), 60);
-    if (state.currentCps < 12) playClickSound();
     const cps = state.currentCps;
+    if (cps < 500) {
+        clickButton.classList.add('pressing');
+        setTimeout(() => clickButton.classList.remove('pressing'), 60);
+    }
+    if (cps < 12) playClickSound();
     if (!(cps > 80 && Math.random() > 0.1)) createRipple(e);
 }
 
