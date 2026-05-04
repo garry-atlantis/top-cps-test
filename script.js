@@ -1,5 +1,5 @@
 // ====== CPS & REAKSIYON TESTI ======
-const BUILD_VERSION = '2026-05-04 v18:41';
+const BUILD_VERSION = '2026-05-04 v19:05';
 
 const INAPPROPRIATE_WORDS = [
     'porno', 'sex', 'sexy', 'fuck', 'shit', 'ass', 'dick', 'cock', 'pussy',
@@ -1036,18 +1036,38 @@ modeBtns.forEach(btn => {
 
 // ====== CPS EVENTS ======
 clickButton.addEventListener('mousedown', handleClick);
+let _clickTouchStartY = 0;
 clickButton.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    for (let i = 0; i < e.changedTouches.length; i++)
-        handleClick({ clientX: e.changedTouches[i].clientX, clientY: e.changedTouches[i].clientY });
+    _clickTouchStartY = e.touches[0].clientY;
+    if (state.isRunning) {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++)
+            handleClick({ clientX: e.changedTouches[i].clientX, clientY: e.changedTouches[i].clientY });
+    }
+}, { passive: false });
+clickButton.addEventListener('touchend', (e) => {
+    if (!state.isRunning && !state.isCountdown && !state.gameEnded) {
+        const dy = Math.abs((e.changedTouches[0]?.clientY ?? _clickTouchStartY) - _clickTouchStartY);
+        if (dy < 10) { e.preventDefault(); handleClick({ clientX: e.changedTouches[0].clientX, clientY: e.changedTouches[0].clientY }); }
+    }
 }, { passive: false });
 clickButton.addEventListener('contextmenu', e => e.preventDefault());
 
 // ====== REACTION EVENTS ======
 reactionBox.addEventListener('mousedown', handleReactionClick);
+let _reactionTouchStartY = 0;
 reactionBox.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    handleReactionClick(e);
+    _reactionTouchStartY = e.touches[0].clientY;
+    if (state.reactionState === 'waiting' || state.reactionState === 'running') {
+        e.preventDefault();
+        handleReactionClick(e);
+    }
+}, { passive: false });
+reactionBox.addEventListener('touchend', (e) => {
+    if (state.reactionState === 'idle' || state.reactionState === 'result') {
+        const dy = Math.abs((e.changedTouches[0]?.clientY ?? _reactionTouchStartY) - _reactionTouchStartY);
+        if (dy < 10) { e.preventDefault(); handleReactionClick(e); }
+    }
 }, { passive: false });
 reactionBox.addEventListener('contextmenu', e => e.preventDefault());
 
