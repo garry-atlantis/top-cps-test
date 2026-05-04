@@ -519,6 +519,9 @@ function updateDisplay() {
         statMax.textContent = state.maxCps;
         localStorage.setItem('maxCps', state.maxCps);
     }
+    if (state.isRunning && state.currentCps > (state.sessionMaxCps || 0)) {
+        state.sessionMaxCps = state.currentCps;
+    }
     if (state.currentCps > state.bestStreak) {
         state.bestStreak = state.currentCps;
         statStreak.textContent = state.bestStreak;
@@ -584,6 +587,7 @@ function startGame() {
     state.isRunning = true; state.gameEnded = false;
     state.startTime = Date.now(); state.totalClicks = 0;
     state.clicks = []; state.currentStreak = 0;
+    state.sessionMaxCps = 0;
     timerBar.style.width = '100%';
     timerBar.classList.remove('timer-warning');
     clickButton.classList.add('active-game');
@@ -604,19 +608,22 @@ function endGame() {
     clickButton.classList.add('game-ended');
     clickCount.textContent = 'Tekrar denemek için Sıfırla';
     playEndSound();
-    state.lastSessionCps = state.currentCps;
+    const sessionBestCps = Math.max(state.sessionMaxCps || 0, state.currentCps);
+    state.lastSessionCps = sessionBestCps;
     state.lastSessionMode = state.timeLimit;
     const name = playerNameInput.value.trim();
-    if (name && state.currentCps > 0) {
+    if (name && sessionBestCps > 0) {
         if (!state.registeredName) {
             state.registeredName = name;
             localStorage.setItem('registeredName', name);
             playerNameInput.readOnly = true;
-            state.nameChangeUsed = true;
-            localStorage.setItem('nameChangeUsed', 'true');
-            changeNameBtn.style.display = 'none';
+            if (!hasUnlimitedNameChange(name)) {
+                state.nameChangeUsed = true;
+                localStorage.setItem('nameChangeUsed', 'true');
+                changeNameBtn.style.display = 'none';
+            }
         }
-        autoSubmitIfBest('cps', state.currentCps, state.timeLimit);
+        autoSubmitIfBest('cps', sessionBestCps, state.timeLimit);
     }
 }
 
