@@ -801,9 +801,11 @@ function handleReactionClick(e) {
                         state.registeredName = name;
                         localStorage.setItem('registeredName', name);
                         playerNameInput.readOnly = true;
-                        state.nameChangeUsed = true;
-                        localStorage.setItem('nameChangeUsed', 'true');
-                        changeNameBtn.style.display = 'none';
+                        if (!hasUnlimitedNameChange(name)) {
+                            state.nameChangeUsed = true;
+                            localStorage.setItem('nameChangeUsed', 'true');
+                            changeNameBtn.style.display = 'none';
+                        }
                     }
                     const bestTime = Math.min(...state.reactionTimes);
                     autoSubmitIfBest('reaction', bestTime);
@@ -1878,12 +1880,13 @@ async function submitScore(name, value, mode, type) {
     try {
         const current = await fetchLeaderboard();
         upsertScore(current, entry, type);
+        const trimmed = trimLeaderboard(current);
         const res = await fetch(`${JSONBIN_CONFIG.BASE_URL}/b/${JSONBIN_CONFIG.BIN_ID}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_CONFIG.API_KEY },
-            body: JSON.stringify({ scores: current })
+            body: JSON.stringify({ scores: trimmed })
         });
         if (!res.ok) throw new Error('Submit error');
-        state.leaderboardData = current; lbCacheTime = 0; return true;
+        state.leaderboardData = trimmed; lbCacheTime = 0; return true;
     } catch (err) {
         console.error('Submit error:', err);
         const data = getLocalLeaderboard();
@@ -1891,6 +1894,24 @@ async function submitScore(name, value, mode, type) {
         localStorage.setItem('leaderboard', JSON.stringify(data));
         state.leaderboardData = data; return true;
     }
+}
+
+function trimLeaderboard(data) {
+    const types = ['cps', 'reaction', 'accuracy', 'number', 'color'];
+    const result = [];
+    types.forEach(type => {
+        const entries = data.filter(e => (e.type || 'cps') === type);
+        const bestPerPlayer = {};
+        entries.forEach(e => {
+            const k = e.name.toLowerCase();
+            const v = type === 'cps' ? e.cps : (type === 'reaction' || type === 'number') ? e.time : e.score;
+            const existing = bestPerPlayer[k];
+            const isBetter = !existing || (type === 'reaction' || type === 'number' ? v < (existing.time ?? Infinity) : v > (existing.cps ?? existing.score ?? -1));
+            if (isBetter) bestPerPlayer[k] = e;
+        });
+        result.push(...Object.values(bestPerPlayer));
+    });
+    return result;
 }
 
 function upsertScore(data, entry, type) {
