@@ -1,5 +1,5 @@
 // ====== CPS & REAKSIYON TESTI ======
-const BUILD_VERSION = '2026-05-04 v19:05';
+const BUILD_VERSION = '2026-05-04 v19:22';
 
 const INAPPROPRIATE_WORDS = [
     'porno', 'sex', 'sexy', 'fuck', 'shit', 'ass', 'dick', 'cock', 'pussy',
@@ -69,7 +69,7 @@ const state = {
     colorBest: parseInt(localStorage.getItem('colorBest')) || 0,
     lastColorScore: 0,
     // UI prefs
-    avatar: localStorage.getItem('avatar') || '😎',
+    avatar: localStorage.getItem('avatar') || '',
     theme: localStorage.getItem('theme') || 'dark',
 };
 
@@ -1394,7 +1394,7 @@ function isAvatarUrl(av) {
 }
 
 function avatarHtml(av, cls = 'lb-avatar') {
-    if (!av) return '';
+    if (!av || av === '??' || av === '?' || (!isAvatarUrl(av) && !AVATAR_OPTIONS.includes(av))) return '';
     if (isAvatarUrl(av)) return `<img src="${av}" class="${cls}-img" alt="" referrerpolicy="no-referrer">`;
     return `<span class="${cls}">${av}</span>`;
 }
@@ -1403,8 +1403,10 @@ function setAvatarButton(av) {
     if (!avatarBtn) return;
     if (isAvatarUrl(av)) {
         avatarBtn.innerHTML = `<img src="${av}" alt="" referrerpolicy="no-referrer">`;
-    } else {
+    } else if (av && AVATAR_OPTIONS.includes(av)) {
         avatarBtn.textContent = av;
+    } else {
+        avatarBtn.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
     }
 }
 
@@ -1583,8 +1585,14 @@ async function openProfileModal() {
     const recordsEl = document.getElementById('profile-records-list');
 
     const setProfileAvatar = (av) => {
-        if (isAvatarUrl(av)) avatarEl.innerHTML = `<img src="${av}" alt="" referrerpolicy="no-referrer">`;
-        else { avatarEl.innerHTML = ''; avatarEl.textContent = av || '👤'; }
+        if (isAvatarUrl(av)) {
+            avatarEl.innerHTML = `<img src="${av}" alt="" referrerpolicy="no-referrer">`;
+        } else if (av && AVATAR_OPTIONS.includes(av)) {
+            avatarEl.innerHTML = ''; avatarEl.textContent = av;
+        } else {
+            avatarEl.innerHTML = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
+            avatarEl.style.display = 'flex'; avatarEl.style.alignItems = 'center'; avatarEl.style.justifyContent = 'center';
+        }
     };
 
     const myName = (state.registeredName || playerNameInput.value.trim() || '').trim();
@@ -1678,10 +1686,18 @@ function initProfile() {
     const btn = document.getElementById('profile-btn');
     const modal = document.getElementById('profile-modal');
     const closeBtn = document.getElementById('profile-close');
+    const changePhotoBtn = document.getElementById('profile-change-photo-btn');
     if (!btn) return;
     btn.addEventListener('click', openProfileModal);
     closeBtn.addEventListener('click', () => modal.classList.remove('open'));
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+    if (changePhotoBtn) {
+        changePhotoBtn.addEventListener('click', () => {
+            modal.classList.remove('open');
+            renderAvatarGrid();
+            avatarModal.classList.add('open');
+        });
+    }
 }
 
 // ====== AVATAR CROP ======
