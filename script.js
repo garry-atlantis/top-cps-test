@@ -1,5 +1,5 @@
 // ====== CPS & REAKSIYON TESTI ======
-const BUILD_VERSION = '2026-05-04 v19:22';
+const BUILD_VERSION = '2026-05-04 v19:30';
 
 const INAPPROPRIATE_WORDS = [
     'porno', 'sex', 'sexy', 'fuck', 'shit', 'ass', 'dick', 'cock', 'pussy',
@@ -1547,9 +1547,9 @@ function initAvatar() {
 
 // ====== PROFILE MODAL ======
 const PROFILE_TYPES = [
-    { type: 'cps',      icon: '⚡', label: 'CPS',      field: 'cps',   higherBetter: true,
-      fmt: (e) => `${(e.cps || 0).toFixed(2)} CPS` },
-    { type: 'reaction', icon: '🎯', label: 'Reaksiyon', field: 'time',  higherBetter: false,
+    { type: 'cps',      icon: '🖱️', label: 'CPS',      field: 'cps',   higherBetter: true,
+      fmt: (e) => `${Math.round(e.cps || 0).toLocaleString()} CPS` },
+    { type: 'reaction', icon: '⚡', label: 'Reaksiyon', field: 'time',  higherBetter: false,
       fmt: (e) => `${Math.round(e.time)} ms` },
     { type: 'accuracy', icon: '🎯', label: 'Doğruluk',  field: 'score', higherBetter: true,
       fmt: (e) => `${e.score} vuruş` },
@@ -1607,8 +1607,7 @@ async function openProfileModal() {
     }
 
     // Show shell + loading
-    if (isAvatarUrl(state.avatar)) avatarEl.innerHTML = `<img src="${state.avatar}" alt="" referrerpolicy="no-referrer">`;
-    else avatarEl.textContent = state.avatar || '👤';
+    setProfileAvatar(state.avatar);
     nameEl.textContent = myName;
     sinceEl.textContent = 'Yükleniyor...';
     statsEl.innerHTML = '';
@@ -1693,9 +1692,13 @@ function initProfile() {
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
     if (changePhotoBtn) {
         changePhotoBtn.addEventListener('click', () => {
-            modal.classList.remove('open');
             renderAvatarGrid();
-            avatarModal.classList.add('open');
+            avatarModal.classList.add('open');            const onAvatarClose = () => {
+                avatarModal.classList.remove('open');
+                openProfileModal();
+                avatarClose.removeEventListener('click', onAvatarClose);
+            };
+            avatarClose.addEventListener('click', onAvatarClose);
         });
     }
 }
