@@ -1,4 +1,5 @@
 // ====== CPS & REAKSIYON TESTI ======
+const BUILD_VERSION = '2026-05-04 v18:41';
 
 const INAPPROPRIATE_WORDS = [
     'porno', 'sex', 'sexy', 'fuck', 'shit', 'ass', 'dick', 'cock', 'pussy',
@@ -233,6 +234,12 @@ function playReactionEarly() {
 
 // ====== INIT ======
 function init() {
+    // Show build version badge
+    const vBadge = document.createElement('div');
+    vBadge.textContent = BUILD_VERSION;
+    vBadge.style.cssText = 'position:fixed;bottom:6px;right:8px;font-size:10px;opacity:0.35;color:#fff;pointer-events:none;z-index:9999;font-family:monospace;';
+    document.body.appendChild(vBadge);
+
     maxCpsValue.textContent = state.maxCps;
     statMax.textContent = state.maxCps;
     statStreak.textContent = state.bestStreak;
