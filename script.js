@@ -418,7 +418,7 @@ function updateChangelogVisibility() {
     const adminBtn = document.getElementById('admin-btn');
     if (!btn) return;
     const name = (state.registeredName || playerNameInput.value.trim()).toLowerCase();
-    const isAdmin = name === 'everseekn' || name === 'destroy' || name === 'destoroy' || localStorage.getItem('adminPrivilege') === 'true';
+    const isAdmin = name === 'everseekn' || name === 'destroy' || name === 'destoroy' || name === 'atlantalıhoca' || localStorage.getItem('adminPrivilege') === 'true';
     if (isAdmin) localStorage.setItem('adminPrivilege', 'true');
     btn.style.display = isAdmin ? '' : 'none';
     if (adminBtn) adminBtn.style.display = isAdmin ? '' : 'none';
@@ -427,7 +427,7 @@ function updateChangelogVisibility() {
 function hasUnlimitedNameChange(nameToCheck = null) {
     if (localStorage.getItem('unlimitedNameChange') === 'true') return true;
     const name = (nameToCheck || state.registeredName || playerNameInput.value.trim()).toLowerCase();
-    if (name === 'shoso' || name === '8887888888888888' || name === 'wethermoon' || name === 'parry' || name === 'destroy' || name === 'destoroy') {
+    if (name === 'shoso' || name === '8887888888888888' || name === 'wethermoon' || name === 'parry' || name === 'destroy' || name === 'destoroy' || name === 'atlantalıhoca') {
         localStorage.setItem('unlimitedNameChange', 'true');
         return true;
     }
