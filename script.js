@@ -459,8 +459,14 @@ const GAME_TITLES = {
     color: 'RENK TESTİ',
 };
 
+// Global touch-scroll guard: prevents buttons from firing during scroll
+let _touchScrolling = false;
+document.addEventListener('touchstart', (e) => { _touchScrolling = false; }, { passive: true });
+document.addEventListener('touchmove', () => { _touchScrolling = true; }, { passive: true });
+
 gameTypeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
+        if (_touchScrolling) return;
         if (state.isRunning || state.isCountdown || state.accuracyState === 'running' || state.numberState === 'running' || state.colorState === 'running') return;
         gameTypeBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -1012,6 +1018,7 @@ nameModalInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') nameM
 // ====== MODE SELECTION ======
 modeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
+        if (_touchScrolling) return;
         if (state.isCountdown || state.isRunning) return;
         modeBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
