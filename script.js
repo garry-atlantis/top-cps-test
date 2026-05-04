@@ -1897,20 +1897,32 @@ async function submitScore(name, value, mode, type) {
 }
 
 function trimLeaderboard(data) {
-    const types = ['cps', 'reaction', 'accuracy', 'number', 'color'];
     const result = [];
-    types.forEach(type => {
-        const entries = data.filter(e => (e.type || 'cps') === type);
-        const bestPerPlayer = {};
+
+    // CPS: keep best per player per mode
+    const cpsEntries = data.filter(e => !e.type || e.type === 'cps');
+    const cpsBest = {};
+    cpsEntries.forEach(e => {
+        const k = `${e.name.toLowerCase()}|${e.mode ?? 5}`;
+        if (!cpsBest[k] || e.cps > cpsBest[k].cps) cpsBest[k] = e;
+    });
+    result.push(...Object.values(cpsBest));
+
+    // Other types: keep best per player
+    ['reaction', 'accuracy', 'number', 'color'].forEach(type => {
+        const entries = data.filter(e => e.type === type);
+        const best = {};
         entries.forEach(e => {
             const k = e.name.toLowerCase();
-            const v = type === 'cps' ? e.cps : (type === 'reaction' || type === 'number') ? e.time : e.score;
-            const existing = bestPerPlayer[k];
-            const isBetter = !existing || (type === 'reaction' || type === 'number' ? v < (existing.time ?? Infinity) : v > (existing.cps ?? existing.score ?? -1));
-            if (isBetter) bestPerPlayer[k] = e;
+            const existing = best[k];
+            const lowerBetter = type === 'reaction' || type === 'number';
+            const v = lowerBetter ? e.time : e.score;
+            const ev = existing ? (lowerBetter ? existing.time : existing.score) : null;
+            if (!existing || (lowerBetter ? v < ev : v > ev)) best[k] = e;
         });
-        result.push(...Object.values(bestPerPlayer));
+        result.push(...Object.values(best));
     });
+
     return result;
 }
 
