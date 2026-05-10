@@ -28,8 +28,10 @@
             <button class="game-type-btn active" data-type="cps">CPS</button>
             <button class="game-type-btn" data-type="reaction">Reaksiyon</button>
             <button class="game-type-btn" data-type="accuracy">Doğruluk</button>
-            <button class="game-type-btn" data-type="number">Sayı</button>
             <button class="game-type-btn" data-type="color">Renk</button>
+            <button class="game-type-btn" data-type="sequence">Sıra</button>
+            <button class="game-type-btn" data-type="luck">Şans</button>
+            <button class="game-type-btn" data-type="panic">Panik</button>
         </div>
 
         <!-- CPS Game Section -->
@@ -168,20 +170,6 @@
             </div>
         </div>
 
-        <!-- Number Game Section -->
-        <div id="number-section" style="display:none">
-            <div id="number-info">
-                <div class="acc-info-card"><span class="acc-info-label">Sıradaki</span><span id="num-next" class="acc-info-value">1</span></div>
-                <div class="acc-info-card"><span class="acc-info-label">Süre</span><span id="num-timer" class="acc-info-value">0.00</span></div>
-            </div>
-            <div id="number-grid"></div>
-            <button id="number-start-btn">Başla</button>
-            <div id="number-stats">
-                <div class="stat-card"><div class="stat-info"><span class="stat-label">En İyi</span><span id="stat-num-best" class="stat-value">—</span></div></div>
-                <div class="stat-card"><div class="stat-info"><span class="stat-label">Son</span><span id="stat-num-last" class="stat-value">—</span></div></div>
-            </div>
-        </div>
-
         <!-- Color Test Section -->
         <div id="color-section" style="display:none">
             <div id="color-info">
@@ -204,6 +192,92 @@
             <div id="color-stats">
                 <div class="stat-card"><div class="stat-info"><span class="stat-label">En İyi</span><span id="stat-color-best" class="stat-value">—</span></div></div>
                 <div class="stat-card"><div class="stat-info"><span class="stat-label">Doğruluk</span><span id="stat-color-pct" class="stat-value">—</span></div></div>
+            </div>
+        </div>
+
+        <!-- Sequence Memory Section -->
+        <div id="sequence-section" style="display:none">
+            <div id="sequence-info">
+                <div class="acc-info-card"><span class="acc-info-label">Seviye</span><span id="sequence-level" class="acc-info-value">1</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Uzunluk</span><span id="sequence-length" class="acc-info-value">3</span></div>
+            </div>
+            <div id="sequence-zone">
+                <div id="sequence-grid">
+                    <div class="sequence-tile" data-idx="0"></div>
+                    <div class="sequence-tile" data-idx="1"></div>
+                    <div class="sequence-tile" data-idx="2"></div>
+                    <div class="sequence-tile" data-idx="3"></div>
+                    <div class="sequence-tile" data-idx="4"></div>
+                    <div class="sequence-tile" data-idx="5"></div>
+                    <div class="sequence-tile" data-idx="6"></div>
+                    <div class="sequence-tile" data-idx="7"></div>
+                    <div class="sequence-tile" data-idx="8"></div>
+                </div>
+                <div id="sequence-message">Sırayı izle ve tekrar et<br>Başlamak için tıkla</div>
+            </div>
+            <div id="sequence-stats">
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">En İyi</span><span id="stat-sequence-best" class="stat-value">—</span></div></div>
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">Son</span><span id="stat-sequence-last" class="stat-value">—</span></div></div>
+            </div>
+        </div>
+
+        <!-- Luck Test Section -->
+        <div id="luck-section" style="display:none">
+            <div id="luck-info">
+                <div class="acc-info-card"><span class="acc-info-label">Seviye</span><span id="luck-level" class="acc-info-value">1</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Skor</span><span id="luck-score" class="acc-info-value">0</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Can</span><span id="luck-lives" class="acc-info-value">❤️❤️❤️</span></div>
+            </div>
+            <div id="luck-zone">
+                <div id="luck-message">⚡ Çubuğu ortada durdur!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span></div>
+                <div id="luck-bar-wrap" style="display:none">
+                    <div id="luck-zone-indicator"></div>
+                    <div id="luck-bar-track">
+                        <div id="luck-target-zone"></div>
+                        <div class="luck-zone-mark" style="left:50%"></div>
+                        <div class="luck-zone-label" style="left:50%">MAX</div>
+                        <div class="luck-zone-mark" style="left:35%"></div>
+                        <div class="luck-zone-mark" style="left:65%"></div>
+                        <div class="luck-zone-label" style="left:35%">70</div>
+                        <div class="luck-zone-label" style="left:65%">70</div>
+                        <div class="luck-zone-mark" style="left:20%"></div>
+                        <div class="luck-zone-mark" style="left:80%"></div>
+                        <div class="luck-zone-label" style="left:20%">40</div>
+                        <div class="luck-zone-label" style="left:80%">40</div>
+                        <div id="luck-needle"></div>
+                    </div>
+                    <div id="luck-tap-hint">DOKUN!</div>
+                </div>
+            </div>
+            <div id="luck-stats">
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">En İyi</span><span id="stat-luck-best" class="stat-value">—</span></div></div>
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">Son</span><span id="stat-luck-last" class="stat-value">—</span></div></div>
+            </div>
+        </div>
+
+        <!-- Panic Mode Section -->
+        <div id="panic-section" style="display:none">
+            <div id="panic-info">
+                <div class="acc-info-card"><span class="acc-info-label">Skor</span><span id="panic-score" class="acc-info-value">0</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Can</span><span id="panic-lives" class="acc-info-value">❤️❤️❤️❤️❤️</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Hız</span><span id="panic-speed" class="acc-info-value">x1</span></div>
+            </div>
+            <div id="panic-zone">
+                <div id="panic-message">😱 Düşen bloğun rengine bas!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span></div>
+                <div id="panic-arena" style="display:none">
+                    <div id="panic-blocks-container"></div>
+                </div>
+            </div>
+            <div id="panic-btns" style="display:none">
+                <button class="panic-btn" data-color="red" style="--pc:#e74c3c"></button>
+                <button class="panic-btn" data-color="blue" style="--pc:#3498db"></button>
+                <button class="panic-btn" data-color="green" style="--pc:#2ecc71"></button>
+                <button class="panic-btn" data-color="yellow" style="--pc:#f0c040"></button>
+                <button class="panic-btn" data-color="purple" style="--pc:#9b59b6"></button>
+            </div>
+            <div id="panic-stats">
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">En İyi</span><span id="stat-panic-best" class="stat-value">—</span></div></div>
+                <div class="stat-card"><div class="stat-info"><span class="stat-label">Son</span><span id="stat-panic-last" class="stat-value">—</span></div></div>
             </div>
         </div>
 
@@ -315,8 +389,10 @@
                     <button class="lb-tab active" data-type="cps">CPS</button>
                     <button class="lb-tab" data-type="reaction">Reaksiyon</button>
                     <button class="lb-tab" data-type="accuracy">Doğruluk</button>
-                    <button class="lb-tab" data-type="number">Sayı</button>
                     <button class="lb-tab" data-type="color">Renk</button>
+                    <button class="lb-tab" data-type="sequence">Sıra</button>
+                    <button class="lb-tab" data-type="luck">Şans</button>
+                    <button class="lb-tab" data-type="panic">Panik</button>
                 </div>
                 <div id="leaderboard-list">
                     <div class="lb-loading">Yükleniyor...</div>
@@ -342,8 +418,10 @@
                 <button class="admin-tab active" data-type="cps">CPS</button>
                 <button class="admin-tab" data-type="reaction">Reaksiyon</button>
                 <button class="admin-tab" data-type="accuracy">Doğruluk</button>
-                <button class="admin-tab" data-type="number">Sayı</button>
                 <button class="admin-tab" data-type="color">Renk</button>
+                <button class="admin-tab" data-type="sequence">Sıra</button>
+                <button class="admin-tab" data-type="luck">Şans</button>
+                <button class="admin-tab" data-type="panic">Panik</button>
             </div>
             <div id="admin-search-row">
                 <input id="admin-search" type="text" placeholder="İsim ara...">

@@ -1,5 +1,5 @@
 // ====== CPS & REAKSIYON TESTI ======
-const BUILD_VERSION = '2026-05-04 v19:30';
+const BUILD_VERSION = '2026-05-10 v15:00';
 
 const INAPPROPRIATE_WORDS = [
     'porno', 'sex', 'sexy', 'fuck', 'shit', 'ass', 'dick', 'cock', 'pussy',
@@ -57,17 +57,28 @@ const state = {
     accuracyTimer: null, accuracyEndTime: 0, accuracyDuration: 20,
     accuracyBest: parseInt(localStorage.getItem('accuracyBest')) || 0,
     lastAccuracyScore: 0, lastAccuracyAccuracy: 0,
-    // Number game
-    numberState: 'idle', numberNext: 1, numberStartTime: 0,
-    numberOrder: [], numberTimerInterval: null,
-    numberBest: parseInt(localStorage.getItem('numberBest')) || 0,
-    lastNumberTime: 0,
     // Color test
     colorState: 'idle', colorCorrect: 0, colorWrong: 0,
     colorTimer: null, colorEndTime: 0, colorDuration: 30,
     colorTargetColor: '', colorTargetWord: '',
     colorBest: parseInt(localStorage.getItem('colorBest')) || 0,
     lastColorScore: 0,
+    // Sequence Memory
+    sequenceState: 'idle', sequenceLevel: 1, sequencePattern: [],
+    sequencePlayerIndex: 0, sequenceShowing: false,
+    sequenceBest: parseInt(localStorage.getItem('sequenceBest')) || 0,
+    lastSequenceScore: 0,
+    // Luck Test
+    luckState: 'idle', luckLevel: 1, luckScore: 0, luckLives: 3,
+    luckNeedlePos: 0, luckNeedleDir: 1, luckAnimId: null,
+    luckBest: parseInt(localStorage.getItem('luckBest')) || 0,
+    lastLuckScore: 0,
+    // Panic Mode
+    panicState: 'idle', panicScore: 0, panicLives: 3,
+    panicBlocks: [], panicSpeed: 1, panicInterval: null, panicAnimId: null,
+    panicLivesMax: 5,
+    panicBest: parseInt(localStorage.getItem('panicBest')) || 0,
+    lastPanicScore: 0,
     // UI prefs
     avatar: localStorage.getItem('avatar') || '',
     theme: localStorage.getItem('theme') || 'dark',
@@ -127,15 +138,6 @@ const accTimer = document.getElementById('acc-timer');
 const statAccBest = document.getElementById('stat-acc-best');
 const statAccPct = document.getElementById('stat-acc-pct');
 
-// Number game
-const numberSection = document.getElementById('number-section');
-const numberGrid = document.getElementById('number-grid');
-const numberStartBtn = document.getElementById('number-start-btn');
-const numNext = document.getElementById('num-next');
-const numTimer = document.getElementById('num-timer');
-const statNumBest = document.getElementById('stat-num-best');
-const statNumLast = document.getElementById('stat-num-last');
-
 // Color test
 const colorSection = document.getElementById('color-section');
 const colorDisplayZone = document.getElementById('color-display-zone');
@@ -146,6 +148,42 @@ const colorTimerVal = document.getElementById('color-timer-val');
 const colorButtons = document.querySelectorAll('.color-btn');
 const statColorBest = document.getElementById('stat-color-best');
 const statColorPct = document.getElementById('stat-color-pct');
+
+// Luck Test
+const luckSection = document.getElementById('luck-section');
+const luckMessage = document.getElementById('luck-message');
+const luckBarWrap = document.getElementById('luck-bar-wrap');
+const luckNeedle = document.getElementById('luck-needle');
+const luckTargetZone = document.getElementById('luck-target-zone');
+const luckTapHint = document.getElementById('luck-tap-hint');
+const luckLevelEl = document.getElementById('luck-level');
+const luckScoreEl = document.getElementById('luck-score');
+const luckLivesEl = document.getElementById('luck-lives');
+const statLuckBest = document.getElementById('stat-luck-best');
+const statLuckLast = document.getElementById('stat-luck-last');
+
+// Panic Mode
+const panicSection = document.getElementById('panic-section');
+const panicMessage = document.getElementById('panic-message');
+const panicArena = document.getElementById('panic-arena');
+const panicBtnsEl = document.getElementById('panic-btns');
+const panicBlocksContainer = document.getElementById('panic-blocks-container');
+const panicScoreEl = document.getElementById('panic-score');
+const panicLivesEl = document.getElementById('panic-lives');
+const panicSpeedEl = document.getElementById('panic-speed');
+const panicBtns = document.querySelectorAll('.panic-btn');
+const statPanicBest = document.getElementById('stat-panic-best');
+const statPanicLast = document.getElementById('stat-panic-last');
+
+// Sequence Memory
+const sequenceSection = document.getElementById('sequence-section');
+const sequenceGrid = document.getElementById('sequence-grid');
+const sequenceTiles = document.querySelectorAll('.sequence-tile');
+const sequenceMessage = document.getElementById('sequence-message');
+const sequenceLevelEl = document.getElementById('sequence-level');
+const sequenceLength = document.getElementById('sequence-length');
+const statSequenceBest = document.getElementById('stat-sequence-best');
+const statSequenceLast = document.getElementById('stat-sequence-last');
 
 // Theme & Avatar
 const themeBtn = document.getElementById('theme-btn');
@@ -323,7 +361,7 @@ function initAdminPanel() {
     });
 }
 
-const ADMIN_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', number: 'Sayı', color: 'Renk' };
+const ADMIN_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', color: 'Renk', chimp: 'Chimp', sequence: 'Sıra' };
 
 async function renderAdminList(tabType, search = '') {
     const adminList = document.getElementById('admin-list');
@@ -350,18 +388,30 @@ async function renderAdminList(tabType, search = '') {
         a.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.score > best[k].score) best[k] = e; });
         entries = Object.values(best).sort((a, b) => b.score - a.score);
         scoreFmt = (e) => `${e.score} vuruş`;
-    } else if (tabType === 'number') {
-        const n = data.filter(e => e.type === 'number' && typeof e.time === 'number');
-        const best = {};
-        n.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.time < best[k].time) best[k] = e; });
-        entries = Object.values(best).sort((a, b) => a.time - b.time);
-        scoreFmt = (e) => `${(e.time / 1000).toFixed(2)} sn`;
     } else if (tabType === 'color') {
         const c = data.filter(e => e.type === 'color' && typeof e.score === 'number');
         const best = {};
         c.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.score > best[k].score) best[k] = e; });
         entries = Object.values(best).sort((a, b) => b.score - a.score);
         scoreFmt = (e) => `${e.score} doğru`;
+    } else if (tabType === 'sequence') {
+        const s = data.filter(e => e.type === 'sequence' && typeof e.score === 'number');
+        const best = {};
+        s.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.score > best[k].score) best[k] = e; });
+        entries = Object.values(best).sort((a, b) => b.score - a.score);
+        scoreFmt = (e) => `${e.score} seviye`;
+    } else if (tabType === 'luck') {
+        const l = data.filter(e => e.type === 'luck' && typeof e.score === 'number');
+        const best = {};
+        l.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.score > best[k].score) best[k] = e; });
+        entries = Object.values(best).sort((a, b) => b.score - a.score);
+        scoreFmt = (e) => `${e.score} puan`;
+    } else if (tabType === 'panic') {
+        const p = data.filter(e => e.type === 'panic' && typeof e.score === 'number');
+        const best = {};
+        p.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.score > best[k].score) best[k] = e; });
+        entries = Object.values(best).sort((a, b) => b.score - a.score);
+        scoreFmt = (e) => `${e.score} blok`;
     }
 
     if (search) entries = entries.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
@@ -462,8 +512,10 @@ const GAME_TITLES = {
     cps: 'CPS TEST',
     reaction: 'REAKSİYON TESTİ',
     accuracy: 'DOĞRULUK TESTİ',
-    number: 'SAYI TESTİ',
     color: 'RENK TESTİ',
+    sequence: 'SIRA HAFIZASI',
+    luck: 'ŞANS TESTİ',
+    panic: 'PANİK MODU',
 };
 
 // Global touch-scroll guard: prevents buttons from firing during scroll
@@ -474,7 +526,7 @@ document.addEventListener('touchmove', () => { _touchScrolling = true; }, { pass
 gameTypeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         if (_touchScrolling) return;
-        if (state.isRunning || state.isCountdown || state.accuracyState === 'running' || state.numberState === 'running' || state.colorState === 'running') return;
+        if (state.isRunning || state.isCountdown || state.accuracyState === 'running' || state.colorState === 'running' || state.sequenceState === 'running' || state.sequenceShowing || state.luckState === 'running' || state.panicState === 'running') return;
         gameTypeBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         state.gameType = btn.dataset.type;
@@ -483,15 +535,19 @@ gameTypeBtns.forEach(btn => {
         cpsSection.style.display = 'none';
         reactionSection.style.display = 'none';
         accuracySection.style.display = 'none';
-        numberSection.style.display = 'none';
         colorSection.style.display = 'none';
+        sequenceSection.style.display = 'none';
+        luckSection.style.display = 'none';
+        panicSection.style.display = 'none';
 
         // Reset other modes' last scores so submit picks correct one
         state.lastSessionCps = 0;
         state.lastReactionTime = 0;
         state.lastAccuracyScore = 0;
-        state.lastNumberTime = 0;
         state.lastColorScore = 0;
+        state.lastSequenceScore = 0;
+        state.lastLuckScore = 0;
+        state.lastPanicScore = 0;
 
         document.querySelector('#header h1').textContent = GAME_TITLES[state.gameType];
 
@@ -503,12 +559,18 @@ gameTypeBtns.forEach(btn => {
         } else if (state.gameType === 'accuracy') {
             accuracySection.style.display = '';
             resetAccuracy();
-        } else if (state.gameType === 'number') {
-            numberSection.style.display = '';
-            resetNumber();
         } else if (state.gameType === 'color') {
             colorSection.style.display = '';
             resetColorTest();
+        } else if (state.gameType === 'sequence') {
+            sequenceSection.style.display = '';
+            resetSequence();
+        } else if (state.gameType === 'luck') {
+            luckSection.style.display = '';
+            resetLuck();
+        } else if (state.gameType === 'panic') {
+            panicSection.style.display = '';
+            resetPanic();
         }
     });
 });
@@ -649,8 +711,10 @@ const AUTO_SUBMIT_CONFIG = {
     cps:      { field: 'cps',   higherBetter: true,  matchType: (e) => !e.type || e.type === 'cps' },
     reaction: { field: 'time',  higherBetter: false, matchType: (e) => e.type === 'reaction' },
     accuracy: { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'accuracy' },
-    number:   { field: 'time',  higherBetter: false, matchType: (e) => e.type === 'number' },
     color:    { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'color' },
+    sequence: { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'sequence' },
+    luck:     { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'luck' },
+    panic:    { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'panic' },
 };
 
 async function autoSubmitIfBest(type, value, mode = null) {
@@ -876,7 +940,7 @@ function createNotificationStack() {
     return c;
 }
 
-const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', number: 'Sayı', color: 'Renk' };
+const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', number: 'Sayı', color: 'Renk', chimp: 'Chimp', sequence: 'Sıra' };
 
 function showRankNotification(rank, type) {
     const label = TYPE_LABELS[type] || type;
@@ -1173,97 +1237,6 @@ accuracyZone.addEventListener('touchstart', (e) => {
 }, { passive: false });
 accuracyZone.addEventListener('contextmenu', e => e.preventDefault());
 
-// ====== NUMBER GAME ======
-function resetNumber() {
-    clearInterval(state.numberTimerInterval);
-    state.numberState = 'idle';
-    state.numberNext = 1;
-    numNext.textContent = '1';
-    numTimer.textContent = '0.00';
-    numberStartBtn.disabled = false;
-    numberStartBtn.textContent = 'Başla';
-    statNumBest.textContent = state.numberBest ? (state.numberBest / 1000).toFixed(2) + 's' : '—';
-    statNumLast.textContent = state.lastNumberTime ? (state.lastNumberTime / 1000).toFixed(2) + 's' : '—';
-    // Render shuffled grid (gray, disabled)
-    renderNumberGrid(true);
-}
-
-function shuffleArray(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
-function renderNumberGrid(disabled) {
-    state.numberOrder = shuffleArray(Array.from({ length: 25 }, (_, i) => i + 1));
-    numberGrid.innerHTML = state.numberOrder.map(n =>
-        `<div class="num-cell ${disabled ? 'disabled' : ''}" data-num="${n}">${n}</div>`
-    ).join('');
-    numberGrid.querySelectorAll('.num-cell').forEach(cell => {
-        cell.addEventListener('click', () => handleNumberClick(parseInt(cell.dataset.num), cell));
-        cell.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            handleNumberClick(parseInt(cell.dataset.num), cell);
-        }, { passive: false });
-    });
-}
-
-function startNumberGame() {
-    state.numberState = 'running';
-    state.numberNext = 1;
-    numNext.textContent = '1';
-    state.numberStartTime = Date.now();
-    numberStartBtn.disabled = true;
-    numberStartBtn.textContent = 'Çalışıyor...';
-    renderNumberGrid(false);
-    state.numberTimerInterval = setInterval(() => {
-        const elapsed = (Date.now() - state.numberStartTime) / 1000;
-        numTimer.textContent = elapsed.toFixed(2);
-    }, 50);
-}
-
-function handleNumberClick(n, cell) {
-    if (state.numberState !== 'running') return;
-    if (n === state.numberNext) {
-        cell.classList.add('correct', 'disabled');
-        state.numberNext++;
-        if (state.numberNext > 25) {
-            endNumberGame();
-        } else {
-            numNext.textContent = state.numberNext;
-        }
-    } else {
-        cell.classList.remove('wrong');
-        void cell.offsetWidth;
-        cell.classList.add('wrong');
-        setTimeout(() => cell.classList.remove('wrong'), 300);
-    }
-}
-
-function endNumberGame() {
-    clearInterval(state.numberTimerInterval);
-    state.numberState = 'ended';
-    const elapsed = Date.now() - state.numberStartTime;
-    state.lastNumberTime = elapsed;
-    numTimer.textContent = (elapsed / 1000).toFixed(2);
-    numberStartBtn.disabled = false;
-    numberStartBtn.textContent = 'Tekrar Oyna';
-    statNumLast.textContent = (elapsed / 1000).toFixed(2) + 's';
-    if (!state.numberBest || elapsed < state.numberBest) {
-        state.numberBest = elapsed;
-        localStorage.setItem('numberBest', elapsed);
-        statNumBest.textContent = (elapsed / 1000).toFixed(2) + 's';
-    }
-    playEndSound();
-    autoSubmitIfBest('number', elapsed);
-}
-
-numberStartBtn.addEventListener('click', () => {
-    if (state.numberState === 'running') return;
-    startNumberGame();
-});
 
 // ====== COLOR TEST ======
 const COLOR_MAP = {
@@ -1553,10 +1526,14 @@ const PROFILE_TYPES = [
       fmt: (e) => `${Math.round(e.time)} ms` },
     { type: 'accuracy', icon: '🎯', label: 'Doğruluk',  field: 'score', higherBetter: true,
       fmt: (e) => `${e.score} vuruş` },
-    { type: 'number',   icon: '🔢', label: 'Sayı',      field: 'time',  higherBetter: false,
-      fmt: (e) => `${(e.time / 1000).toFixed(2)} sn` },
     { type: 'color',    icon: '🌈', label: 'Renk',      field: 'score', higherBetter: true,
       fmt: (e) => `${e.score} doğru` },
+    { type: 'sequence', icon: '🧠', label: 'Sıra',      field: 'score', higherBetter: true,
+      fmt: (e) => `${e.score} seviye` },
+    { type: 'luck',     icon: '⚡',  label: 'Şans',      field: 'score', higherBetter: true,
+      fmt: (e) => `${e.score} puan` },
+    { type: 'panic',    icon: '😱', label: 'Panik',      field: 'score', higherBetter: true,
+      fmt: (e) => `${e.score} blok` },
 ];
 
 function getBestPerPlayer(entries, field, higherBetter) {
@@ -1870,8 +1847,10 @@ function resetCurrentGame() {
     if (state.gameType === 'cps') resetGame();
     else if (state.gameType === 'reaction') resetReaction();
     else if (state.gameType === 'accuracy') resetAccuracy();
-    else if (state.gameType === 'number') resetNumber();
     else if (state.gameType === 'color') resetColorTest();
+    else if (state.gameType === 'sequence') resetSequence();
+    else if (state.gameType === 'luck') resetLuck();
+    else if (state.gameType === 'panic') resetPanic();
 }
 
 document.addEventListener('keydown', (e) => {
@@ -1882,8 +1861,6 @@ document.addEventListener('keydown', (e) => {
             if (state.gameEnded) resetGame(); else handleClick({ clientX: 0, clientY: 0 });
         } else if (state.gameType === 'reaction') {
             handleReactionClick(e);
-        } else if (state.gameType === 'number' && state.numberState !== 'running') {
-            startNumberGame();
         }
     }
     if (e.code === 'KeyR') { e.preventDefault(); resetCurrentGame(); }
@@ -1971,13 +1948,13 @@ function trimLeaderboard(data) {
     result.push(...Object.values(cpsBest));
 
     // Other types: keep best per player
-    ['reaction', 'accuracy', 'number', 'color'].forEach(type => {
+    ['reaction', 'accuracy', 'color', 'sequence', 'luck', 'panic'].forEach(type => {
         const entries = data.filter(e => e.type === type);
         const best = {};
         entries.forEach(e => {
             const k = e.name.toLowerCase();
             const existing = best[k];
-            const lowerBetter = type === 'reaction' || type === 'number';
+            const lowerBetter = type === 'reaction';
             const v = lowerBetter ? e.time : e.score;
             const ev = existing ? (lowerBetter ? existing.time : existing.score) : null;
             if (!existing || (lowerBetter ? v < ev : v > ev)) best[k] = e;
@@ -2054,15 +2031,6 @@ function renderLeaderboard(data, tabType) {
         });
         entries = Object.values(bestPerPlayer).sort((a, b) => b.score - a.score);
         scoreFormat = (e) => `${e.score} <span>vuruş</span>`;
-    } else if (tabType === 'number') {
-        const n = data.filter(e => e.type === 'number' && typeof e.time === 'number');
-        const bestPerPlayer = {};
-        n.forEach(e => {
-            const key = e.name.toLowerCase();
-            if (!bestPerPlayer[key] || e.time < bestPerPlayer[key].time) bestPerPlayer[key] = e;
-        });
-        entries = Object.values(bestPerPlayer).sort((a, b) => a.time - b.time);
-        scoreFormat = (e) => `${(e.time / 1000).toFixed(2)} <span>sn</span>`;
     } else if (tabType === 'color') {
         const c = data.filter(e => e.type === 'color' && typeof e.score === 'number');
         const bestPerPlayer = {};
@@ -2072,6 +2040,33 @@ function renderLeaderboard(data, tabType) {
         });
         entries = Object.values(bestPerPlayer).sort((a, b) => b.score - a.score);
         scoreFormat = (e) => `${e.score} <span>doğru</span>`;
+    } else if (tabType === 'sequence') {
+        const s = data.filter(e => e.type === 'sequence' && typeof e.score === 'number');
+        const bestPerPlayer = {};
+        s.forEach(e => {
+            const key = e.name.toLowerCase();
+            if (!bestPerPlayer[key] || e.score > bestPerPlayer[key].score) bestPerPlayer[key] = e;
+        });
+        entries = Object.values(bestPerPlayer).sort((a, b) => b.score - a.score);
+        scoreFormat = (e) => `${e.score} <span>seviye</span>`;
+    } else if (tabType === 'luck') {
+        const l = data.filter(e => e.type === 'luck' && typeof e.score === 'number');
+        const bestPerPlayer = {};
+        l.forEach(e => {
+            const key = e.name.toLowerCase();
+            if (!bestPerPlayer[key] || e.score > bestPerPlayer[key].score) bestPerPlayer[key] = e;
+        });
+        entries = Object.values(bestPerPlayer).sort((a, b) => b.score - a.score);
+        scoreFormat = (e) => `${e.score} <span>puan</span>`;
+    } else if (tabType === 'panic') {
+        const p = data.filter(e => e.type === 'panic' && typeof e.score === 'number');
+        const bestPerPlayer = {};
+        p.forEach(e => {
+            const key = e.name.toLowerCase();
+            if (!bestPerPlayer[key] || e.score > bestPerPlayer[key].score) bestPerPlayer[key] = e;
+        });
+        entries = Object.values(bestPerPlayer).sort((a, b) => b.score - a.score);
+        scoreFormat = (e) => `${e.score} <span>blok</span>`;
     }
 
     if (entries.length === 0) { leaderboardList.innerHTML = '<div class="lb-empty">Henüz skor yok! 🎮</div>'; return; }
@@ -2125,8 +2120,10 @@ submitScoreBtn.addEventListener('click', async () => {
     if (type === 'cps') { value = state.lastSessionCps; mode = state.lastSessionMode; label = 'CPS'; }
     else if (type === 'reaction') { value = state.reactionTimes.length ? Math.min(...state.reactionTimes) : 0; label = 'Reaksiyon'; }
     else if (type === 'accuracy') { value = state.lastAccuracyScore; label = 'Doğruluk'; }
-    else if (type === 'number') { value = state.lastNumberTime; label = 'Sayı'; }
     else if (type === 'color') { value = state.lastColorScore; label = 'Renk'; }
+    else if (type === 'sequence') { value = state.lastSequenceScore; label = 'Sıra'; }
+    else if (type === 'luck') { value = state.lastLuckScore; label = 'Şans'; }
+    else if (type === 'panic') { value = state.lastPanicScore; label = 'Panik'; }
 
     if (!value || value <= 0) {
         submitScoreBtn.textContent = 'Önce test yap!'; submitScoreBtn.style.opacity = '0.6';
@@ -2154,6 +2151,445 @@ submitScoreBtn.addEventListener('click', async () => {
         renderLeaderboard(state.leaderboardData || [], type);
         setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.disabled = false; }, 2000);
     } else { submitScoreBtn.textContent = 'Hata! Tekrar Dene'; submitScoreBtn.disabled = false; }
+});
+
+// ====== SEQUENCE MEMORY ======
+let _seqAbortController = null;
+
+function getSequenceSpeed() {
+    // Speed up as level increases: 500ms on/off at level 1, down to 200ms at level 10+
+    const ms = Math.max(200, 500 - (state.sequenceLevel - 1) * 30);
+    return ms;
+}
+
+async function showSequence() {
+    const controller = { aborted: false };
+    _seqAbortController = controller;
+
+    state.sequenceShowing = true;
+    sequenceMessage.textContent = 'İzle...';
+    sequenceTiles.forEach(t => t.classList.remove('sequence-active', 'sequence-wrong'));
+
+    const ms = getSequenceSpeed();
+
+    for (let i = 0; i < state.sequencePattern.length; i++) {
+        if (controller.aborted) return;
+        await new Promise(r => setTimeout(r, ms * 0.5));
+        if (controller.aborted) return;
+        const idx = state.sequencePattern[i];
+        sequenceTiles[idx].classList.add('sequence-active');
+        playClickSound();
+        await new Promise(r => setTimeout(r, ms));
+        if (controller.aborted) return;
+        sequenceTiles[idx].classList.remove('sequence-active');
+    }
+
+    await new Promise(r => setTimeout(r, ms * 0.4));
+    if (controller.aborted) return;
+    state.sequenceShowing = false;
+    state.sequencePlayerIndex = 0;
+    sequenceMessage.textContent = 'Tekrar et!';
+}
+
+function handleSequenceClick(idx) {
+    if (state.sequenceState === 'idle' || state.sequenceState === 'ended') {
+        startSequence();
+        return;
+    }
+    if (state.sequenceState !== 'running' || state.sequenceShowing) return;
+
+    if (idx === state.sequencePattern[state.sequencePlayerIndex]) {
+        sequenceTiles[idx].classList.add('sequence-active');
+        playClickSound();
+        setTimeout(() => sequenceTiles[idx].classList.remove('sequence-active'), 180);
+        state.sequencePlayerIndex++;
+
+        if (state.sequencePlayerIndex >= state.sequencePattern.length) {
+            state.sequenceLevel++;
+            sequenceLevelEl.textContent = state.sequenceLevel;
+            sequenceLength.textContent = state.sequencePattern.length + 1;
+            sequenceMessage.textContent = '✓ Harika!';
+            state.sequencePattern.push(Math.floor(Math.random() * 9));
+            sequenceLength.textContent = state.sequencePattern.length;
+            setTimeout(() => showSequence(), 600);
+        }
+    } else {
+        sequenceTiles[idx].classList.add('sequence-wrong');
+        setTimeout(() => {
+            sequenceTiles.forEach(t => t.classList.remove('sequence-wrong'));
+        }, 500);
+        endSequence();
+    }
+}
+
+function startSequence() {
+    state.sequenceState = 'running';
+    state.sequenceLevel = 1;
+    state.sequencePattern = [Math.floor(Math.random() * 9), Math.floor(Math.random() * 9), Math.floor(Math.random() * 9)];
+    sequenceLevelEl.textContent = '1';
+    sequenceLength.textContent = '3';
+    showSequence();
+}
+
+function endSequence() {
+    if (_seqAbortController) _seqAbortController.aborted = true;
+    state.sequenceState = 'ended';
+    state.sequenceShowing = false;
+    const finalScore = state.sequenceLevel - 1;
+    sequenceMessage.innerHTML = `<span class="game-result-big">${finalScore}</span><span class="game-result-label">Seviye · Tekrar için tıkla</span>`;
+    state.lastSequenceScore = finalScore;
+    statSequenceLast.textContent = finalScore;
+    if (finalScore > state.sequenceBest) {
+        state.sequenceBest = finalScore;
+        localStorage.setItem('sequenceBest', finalScore);
+        statSequenceBest.textContent = finalScore;
+    }
+    playEndSound();
+    autoSubmitIfBest('sequence', finalScore);
+}
+
+function resetSequence() {
+    if (_seqAbortController) _seqAbortController.aborted = true;
+    state.sequenceState = 'idle';
+    state.sequenceLevel = 1;
+    state.sequencePattern = [];
+    state.sequencePlayerIndex = 0;
+    state.sequenceShowing = false;
+    sequenceLevelEl.textContent = '1';
+    sequenceLength.textContent = '3';
+    sequenceTiles.forEach(t => t.classList.remove('sequence-active', 'sequence-wrong'));
+    sequenceMessage.innerHTML = '🧠 Sırayı izle ve tekrar et<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
+}
+
+sequenceTiles.forEach((tile, idx) => {
+    tile.addEventListener('click', () => handleSequenceClick(idx));
+});
+
+sequenceMessage.addEventListener('click', () => { if (state.sequenceState === 'idle' || state.sequenceState === 'ended') startSequence(); });
+
+// ====== LUCK TEST ======
+const LUCK_COLORS = ['#2ecc71', '#f0c040', '#e74c3c'];
+
+function getLuckTargetWidth() {
+    // Target zone shrinks per level: 40% → min 8%
+    return Math.max(8, 40 - (state.luckLevel - 1) * 3);
+}
+
+function getLuckSpeed() {
+    // % per millisecond — increases per level
+    return 0.04 + (state.luckLevel - 1) * 0.008;
+}
+
+function updateLuckLives() {
+    luckLivesEl.textContent = '❤️'.repeat(state.luckLives) + '🖤'.repeat(3 - state.luckLives);
+}
+
+function renderLuckBar() {
+    const targetW = getLuckTargetWidth();
+    const targetLeft = (100 - targetW) / 2;
+    luckTargetZone.style.left = `${targetLeft}%`;
+    luckTargetZone.style.width = `${targetW}%`;
+    // Color: green if wide, yellow if medium, red if narrow
+    const color = targetW > 25 ? '#2ecc71' : targetW > 14 ? '#f0c040' : '#e74c3c';
+    luckTargetZone.style.background = `rgba(${color === '#2ecc71' ? '46,204,113' : color === '#f0c040' ? '240,192,64' : '231,76,60'}, 0.35)`;
+    luckTargetZone.style.borderColor = color;
+}
+
+let _luckLastTime = 0;
+let _luckTrackW = 0;
+function animateLuck(ts) {
+    if (state.luckState !== 'running') return;
+    if (_luckLastTime === 0) { _luckLastTime = ts; _luckTrackW = luckNeedle.parentElement.offsetWidth || 340; }
+    const dt = Math.min(ts - _luckLastTime, 32);
+    _luckLastTime = ts;
+    const speed = getLuckSpeed();
+    state.luckNeedlePos += state.luckNeedleDir * speed * dt;
+    if (state.luckNeedlePos >= 100) { state.luckNeedlePos = 100; state.luckNeedleDir = -1; }
+    if (state.luckNeedlePos <= 0)   { state.luckNeedlePos = 0;   state.luckNeedleDir = 1; }
+    const px = (state.luckNeedlePos / 100) * _luckTrackW - 2;
+    luckNeedle.style.transform = `translateX(${px}px)`;
+    state.luckAnimId = requestAnimationFrame(animateLuck);
+}
+
+function handleLuckTap() {
+    if (state.luckState === 'idle' || state.luckState === 'ended') { startLuck(); return; }
+    if (state.luckState !== 'running') return;
+
+    state.luckState = 'pausing'; // block re-tap during feedback
+    cancelAnimationFrame(state.luckAnimId);
+    state.luckAnimId = null;
+
+    const targetW = getLuckTargetWidth();
+    const targetLeft = (100 - targetW) / 2;
+    const targetRight = targetLeft + targetW;
+    const hit = state.luckNeedlePos >= targetLeft && state.luckNeedlePos <= targetRight;
+
+    // Score based on how close to center (100 = perfect)
+    const center = 50;
+    const distFromCenter = Math.abs(state.luckNeedlePos - center);
+    const maxDist = targetW / 2;
+    const hitScore = hit ? Math.round(100 * (1 - distFromCenter / (center))) : 0;
+
+    if (hit) {
+        state.luckScore += hitScore;
+        luckScoreEl.textContent = state.luckScore;
+        luckNeedle.style.background = '#2ecc71';
+        luckTapHint.textContent = `+${hitScore} ✓`;
+        luckTapHint.style.color = '#2ecc71';
+        state.luckLevel++;
+        luckLevelEl.textContent = state.luckLevel;
+        renderLuckBar();
+        setTimeout(() => {
+            luckNeedle.style.background = '#f0c040';
+            luckTapHint.textContent = 'DOKUN!';
+            luckTapHint.style.color = '#e8e8e8';
+            state.luckNeedlePos = Math.random() * 100;
+            state.luckNeedleDir = Math.random() > 0.5 ? 1 : -1;
+            _luckLastTime = 0;
+            state.luckState = 'running';
+            state.luckAnimId = requestAnimationFrame(animateLuck);
+        }, 120);
+    } else {
+        state.luckLives--;
+        updateLuckLives();
+        luckNeedle.style.background = '#e74c3c';
+        luckTapHint.textContent = '✗ KAÇIRDIN!';
+        luckTapHint.style.color = '#e74c3c';
+        if (state.luckLives <= 0) {
+            setTimeout(() => endLuck(), 200);
+        } else {
+            setTimeout(() => {
+                luckNeedle.style.background = '#f0c040';
+                luckTapHint.textContent = 'DOKUN!';
+                luckTapHint.style.color = '#e8e8e8';
+                state.luckNeedlePos = Math.random() * 100;
+                state.luckNeedleDir = Math.random() > 0.5 ? 1 : -1;
+                _luckLastTime = 0;
+                state.luckState = 'running';
+                state.luckAnimId = requestAnimationFrame(animateLuck);
+            }, 200);
+        }
+    }
+}
+
+function startLuck() {
+    state.luckState = 'running';
+    state.luckLevel = 1;
+    state.luckScore = 0;
+    state.luckLives = 3;
+    state.luckNeedlePos = 0;
+    state.luckNeedleDir = 1;
+    luckLevelEl.textContent = '1';
+    luckScoreEl.textContent = '0';
+    updateLuckLives();
+    luckMessage.style.display = 'none';
+    luckBarWrap.style.display = '';
+    luckNeedle.style.background = '#f0c040';
+    luckTapHint.textContent = 'DOKUN!';
+    luckTapHint.style.color = '#e8e8e8';
+    renderLuckBar();
+    _luckLastTime = 0;
+    state.luckAnimId = requestAnimationFrame(animateLuck);
+}
+
+function endLuck() {
+    cancelAnimationFrame(state.luckAnimId);
+    state.luckState = 'ended';
+    luckBarWrap.style.display = 'none';
+    luckMessage.style.display = '';
+    luckMessage.innerHTML = `<span class="game-result-big">${state.luckScore}</span><span class="game-result-label">Puan · Tekrar için tıkla</span>`;
+    state.lastLuckScore = state.luckScore;
+    statLuckLast.textContent = state.luckScore;
+    if (state.luckScore > state.luckBest) {
+        state.luckBest = state.luckScore;
+        localStorage.setItem('luckBest', state.luckScore);
+        statLuckBest.textContent = state.luckScore;
+    }
+    playEndSound();
+    autoSubmitIfBest('luck', state.luckScore);
+}
+
+function resetLuck() {
+    cancelAnimationFrame(state.luckAnimId);
+    state.luckState = 'idle';
+    state.luckLevel = 1;
+    state.luckScore = 0;
+    state.luckLives = 3;
+    state.luckNeedlePos = 0;
+    state.luckNeedleDir = 1;
+    state.luckAnimId = null;
+    luckLevelEl.textContent = '1';
+    luckScoreEl.textContent = '0';
+    updateLuckLives();
+    luckBarWrap.style.display = 'none';
+    luckMessage.style.display = '';
+    luckMessage.innerHTML = '⚡ Çubuğu ortada durdur!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
+    statLuckBest.textContent = state.luckBest || '—';
+    statLuckLast.textContent = '—';
+}
+
+// Use touchstart for zero-delay response on mobile; fallback click for desktop
+const luckZoneEl = document.getElementById('luck-zone');
+let _luckTouchFired = false;
+luckZoneEl.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    _luckTouchFired = true;
+    handleLuckTap();
+}, { passive: false });
+luckZoneEl.addEventListener('click', () => {
+    if (_luckTouchFired) { _luckTouchFired = false; return; }
+    handleLuckTap();
+});
+
+// ====== PANIC MODE ======
+const PANIC_COLORS = {
+    red:    '#e74c3c',
+    blue:   '#3498db',
+    green:  '#2ecc71',
+    yellow: '#f0c040',
+    purple: '#9b59b6',
+};
+const PANIC_COLOR_KEYS = Object.keys(PANIC_COLORS);
+
+function updatePanicLives() {
+    panicLivesEl.textContent = '❤️'.repeat(state.panicLives) + '🖤'.repeat(state.panicLivesMax - state.panicLives);
+}
+
+function spawnPanicBlock() {
+    if (state.panicState !== 'running') return;
+    const colorKey = PANIC_COLOR_KEYS[Math.floor(Math.random() * PANIC_COLOR_KEYS.length)];
+    const block = document.createElement('div');
+    block.className = 'panic-block';
+    block.style.background = PANIC_COLORS[colorKey];
+    block.dataset.color = colorKey;
+    // Random horizontal position
+    const leftPct = 5 + Math.random() * 65;
+    block.style.left = `${leftPct}%`;
+    block.style.top = '0%';
+    panicBlocksContainer.appendChild(block);
+    state.panicBlocks.push({ el: block, color: colorKey, pos: 0 });
+}
+
+function animatePanic() {
+    if (state.panicState !== 'running') return;
+    const arenaH = panicArena.clientHeight || 260;
+    const speed = 1.8 * state.panicSpeed;
+
+    for (let i = state.panicBlocks.length - 1; i >= 0; i--) {
+        const b = state.panicBlocks[i];
+        b.pos += speed;
+        b.el.style.top = `${(b.pos / arenaH) * 100}%`;
+        if (b.pos >= arenaH - 10) {
+            // Missed
+            b.el.remove();
+            state.panicBlocks.splice(i, 1);
+            state.panicLives--;
+            updatePanicLives();
+            if (state.panicLives <= 0) { endPanic(); return; }
+        }
+    }
+    state.panicAnimId = requestAnimationFrame(animatePanic);
+}
+
+function handlePanicBtn(colorKey) {
+    if (state.panicState !== 'running') return;
+    // Find the lowest block of matching color
+    let hit = null;
+    let maxPos = -1;
+    for (const b of state.panicBlocks) {
+        if (b.color === colorKey && b.pos > maxPos) { hit = b; maxPos = b.pos; }
+    }
+    if (hit) {
+        hit.el.classList.add('panic-hit');
+        setTimeout(() => hit.el.remove(), 150);
+        state.panicBlocks = state.panicBlocks.filter(b => b !== hit);
+        state.panicScore++;
+        panicScoreEl.textContent = state.panicScore;
+        // Speed up with every block
+        state.panicSpeed = 1 + Math.max(0, state.panicScore - 5) * 0.04;
+        panicSpeedEl.textContent = `x${state.panicSpeed.toFixed(1)}`;
+        playClickSound();
+    } else {
+        // Wrong color tap — flash button
+        const btn = [...panicBtns].find(b => b.dataset.color === colorKey);
+        if (btn) { btn.classList.add('panic-btn-wrong'); setTimeout(() => btn.classList.remove('panic-btn-wrong'), 300); }
+    }
+}
+
+function startPanic() {
+    state.panicState = 'running';
+    state.panicScore = 0;
+    state.panicLives = state.panicLivesMax;
+    state.panicBlocks = [];
+    state.panicSpeed = 1;
+    panicScoreEl.textContent = '0';
+    panicSpeedEl.textContent = 'x1';
+    updatePanicLives();
+    panicMessage.style.display = 'none';
+    panicArena.style.display = '';
+    panicBtnsEl.style.display = '';
+    panicBlocksContainer.innerHTML = '';
+    // Spawn blocks at interval — restarts interval as speed increases
+    spawnPanicBlock();
+    const scheduleSpawn = () => {
+        if (state.panicState !== 'running') return;
+        const interval = Math.max(600, 1400 - state.panicScore * 8);
+        state.panicInterval = setTimeout(() => {
+            spawnPanicBlock();
+            scheduleSpawn();
+        }, interval);
+    };
+    scheduleSpawn();
+    animatePanic();
+}
+
+function endPanic() {
+    cancelAnimationFrame(state.panicAnimId);
+    clearTimeout(state.panicInterval);
+    state.panicState = 'ended';
+    panicArena.style.display = 'none';
+    panicBtnsEl.style.display = 'none';
+    panicMessage.style.display = '';
+    panicMessage.innerHTML = `<span class="game-result-big">${state.panicScore}</span><span class="game-result-label">Blok · Tekrar için tıkla</span>`;
+    state.lastPanicScore = state.panicScore;
+    statPanicLast.textContent = state.panicScore;
+    if (state.panicScore > state.panicBest) {
+        state.panicBest = state.panicScore;
+        localStorage.setItem('panicBest', state.panicScore);
+        statPanicBest.textContent = state.panicScore;
+    }
+    playEndSound();
+    autoSubmitIfBest('panic', state.panicScore);
+}
+
+function resetPanic() {
+    cancelAnimationFrame(state.panicAnimId);
+    clearTimeout(state.panicInterval);
+    state.panicState = 'idle';
+    state.panicScore = 0;
+    state.panicLives = state.panicLivesMax;
+    state.panicBlocks = [];
+    state.panicSpeed = 1;
+    state.panicAnimId = null;
+    state.panicInterval = null;
+    panicScoreEl.textContent = '0';
+    panicSpeedEl.textContent = 'x1';
+    updatePanicLives();
+    panicMessage.style.display = '';
+    panicMessage.innerHTML = '😱 Düşen bloğun rengine bas!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
+    panicArena.style.display = 'none';
+    panicBtnsEl.style.display = 'none';
+    panicBlocksContainer.innerHTML = '';
+    statPanicBest.textContent = state.panicBest || '—';
+    statPanicLast.textContent = '—';
+}
+
+panicMessage.addEventListener('click', () => { if (state.panicState === 'idle' || state.panicState === 'ended') startPanic(); });
+
+panicBtns.forEach(btn => {
+    const tap = (e) => { e.preventDefault(); handlePanicBtn(btn.dataset.color); };
+    btn.addEventListener('click', tap);
+    btn.addEventListener('touchstart', tap, { passive: false });
 });
 
 // ====== START ======
