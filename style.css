@@ -42,7 +42,7 @@ body {
 }
 
 #header h1 {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.5rem;
     color: #e8e8e8;
     flex: 1;
@@ -149,7 +149,7 @@ body {
 }
 
 #admin-header h2 {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.2rem;
     color: #e74c3c;
 }
@@ -176,7 +176,7 @@ body {
 }
 
 .admin-tab {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 0.9rem;
     padding: 8px 20px;
     border: 2px solid rgba(255,255,255,0.1);
@@ -337,7 +337,7 @@ body {
 }
 
 #changelog-header h2 {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.3rem;
     color: #f0c040;
 }
@@ -378,7 +378,7 @@ body {
 }
 
 .cl-version {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.05rem;
     color: #3498db;
     margin-bottom: 10px;
@@ -463,7 +463,7 @@ body {
 }
 
 .rh-value {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 0.9rem;
     color: #e0e0e0;
 }
@@ -543,7 +543,7 @@ body {
 .current-cps .cps-label { color: #3498db; }
 
 .cps-value {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 2.4rem;
     line-height: 1;
     margin-top: 4px;
@@ -562,7 +562,7 @@ body {
 }
 
 #player-name-input {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1rem;
     color: #f0c040;
     background: rgba(240, 192, 64, 0.08);
@@ -650,7 +650,7 @@ body {
 }
 
 #name-modal-input {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.1rem;
     color: #f0c040;
     background: rgba(240, 192, 64, 0.08);
@@ -763,7 +763,7 @@ body {
 }
 
 .click-text {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 2rem;
     color: #3498db;
     transition: color 0.1s;
@@ -843,7 +843,7 @@ body {
 }
 
 .stat-value {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.4rem;
     color: #e0e0e0;
 }
@@ -901,7 +901,7 @@ body {
 .game-type-btn {
     flex: 1;
     min-width: 0;
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 0.9rem;
     padding: 10px 16px;
     border: 2px solid rgba(255, 255, 255, 0.1);
@@ -951,7 +951,7 @@ body {
 }
 
 .reaction-result-value {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 3rem;
     line-height: 1;
     color: #3498db;
@@ -1034,7 +1034,7 @@ body {
 }
 
 #reaction-text {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.8rem;
     color: #3498db;
     transition: color 0.15s, font-size 0.15s;
@@ -1050,7 +1050,7 @@ body {
 }
 
 .mode-btn {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 0.95rem;
     padding: 8px 18px;
     border: 2px solid rgba(255, 255, 255, 0.1);
@@ -1175,7 +1175,7 @@ body {
 }
 
 #leaderboard-header h2 {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.2rem;
     color: #f0c040;
 }
@@ -1204,7 +1204,7 @@ body {
 }
 
 .lb-tab {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 0.85rem;
     padding: 6px 16px;
     border: 2px solid rgba(255, 255, 255, 0.08);
@@ -1329,7 +1329,7 @@ body {
 }
 
 .lb-rank {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1rem;
     width: 36px;
     text-align: center;
@@ -1383,7 +1383,7 @@ body {
 .lb-row:nth-child(5) .lb-title { color: #48dbfb; }
 
 .lb-score {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1rem;
     color: #3498db;
     margin-left: 8px;
@@ -1534,7 +1534,7 @@ body {
 }
 
 #countdown-number {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 6rem;
     color: #f0c040;
     text-shadow: 0 0 40px rgba(240, 192, 64, 0.4);
@@ -1731,7 +1731,7 @@ body {
 }
 
 .acc-info-value {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.3rem;
     color: #e0e0e0;
 }
@@ -1760,7 +1760,7 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.2rem;
     color: #7a8a9a;
     text-align: center;
@@ -1838,7 +1838,7 @@ body {
 }
 
 #color-display-text {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 3rem;
     text-align: center;
     transition: opacity 0.1s;
@@ -1863,7 +1863,7 @@ body {
 }
 
 .color-btn {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 0.9rem;
     padding: 14px 8px;
     border-radius: 10px;
@@ -1962,7 +1962,7 @@ body {
 }
 
 #avatar-header h2, #theme-header h2 {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.1rem;
     color: #f0c040;
 }
@@ -2137,7 +2137,7 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 #welcome-header h1 {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.6rem;
     color: #f0c040;
     margin: 0 0 6px 0;
@@ -2287,7 +2287,7 @@ body {
 }
 
 #profile-header h2 {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.1rem;
     color: #f0c040;
 }
@@ -2371,7 +2371,7 @@ body {
 }
 
 #profile-name {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.5rem;
     color: #e8e8e8;
     text-align: center;
@@ -2408,13 +2408,13 @@ body {
 }
 
 .profile-stat-value {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1.3rem;
     color: #f0c040;
 }
 
 .profile-section-title {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 0.95rem;
     color: #f0c040;
     margin-bottom: 8px;
@@ -2453,7 +2453,7 @@ body {
 }
 
 .profile-record-score {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1rem;
     color: #2ecc71;
 }
@@ -2461,7 +2461,7 @@ body {
 .profile-record-score.empty { color: #5a6a7a; font-size: 0.85rem; }
 
 .profile-record-rank {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 0.85rem;
     color: #f0c040;
     background: rgba(240,192,64,0.12);
@@ -2515,7 +2515,7 @@ body {
 }
 
 #crop-header h2 {
-    font-family: 'Fredoka', cursive; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
     font-size: 1rem;
     color: #f0c040;
 }
@@ -3085,7 +3085,7 @@ body[data-theme="ocean"] #timer-bar.timer-warning { background: linear-gradient(
 
 /* Shared result display */
 .game-result-big {
-    font-family: 'Fredoka', cursive; font-weight: 700; font-size: 3.5rem; color: #f0c040;
+    font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 3.5rem; color: #f0c040;
     line-height: 1; display: block;
 }
 .game-result-label {
@@ -3140,7 +3140,7 @@ body[data-theme="ocean"] #timer-bar.timer-warning { background: linear-gradient(
     background: rgba(240,192,64,0.06);
 }
 #title-picker-header h2 {
-    font-family: 'Fredoka', cursive; font-weight: 700; font-size: 1.1rem; color: #f0c040;
+    font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1.1rem; color: #f0c040;
 }
 #title-picker-close {
     background: none; border: none; color: #c0c8d0;
@@ -3330,7 +3330,7 @@ body[data-theme="ocean"] #timer-bar.timer-warning { background: linear-gradient(
 #luck-needle.needle-good    { background: #f0c040; box-shadow: 0 0 6px rgba(240,192,64,0.8); }
 #luck-needle.needle-miss    { background: #e74c3c; box-shadow: 0 0 8px rgba(231,76,60,0.8); }
 #luck-tap-hint {
-    font-family: 'Fredoka', cursive; font-weight: 700; font-size: 1.1rem;
+    font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1.1rem;
     letter-spacing: 0.5px;
 }
 #luck-tap-hint.hint-perfect { color: #2ecc71; }
@@ -3349,7 +3349,7 @@ body[data-theme="ocean"] #timer-bar.timer-warning { background: linear-gradient(
 }
 #luck-combo-popup {
     position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
-    font-family: 'Fredoka', cursive; font-weight: 700; font-size: 1.4rem;
+    font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1.4rem;
     pointer-events: none; opacity: 0;
     text-shadow: 0 0 10px currentColor;
 }
