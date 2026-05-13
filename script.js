@@ -1904,8 +1904,31 @@ async function openTitlePicker() {
             const text = (customInput.value || '').trim();
             if (!text) { customInput.focus(); return; }
             if (isInappropriateName(text)) { showNotification('Uygunsuz title!', 'warning'); return; }
+            // Uniqueness check: no other player can hold this exact custom title text (case-insensitive)
+            customApply.disabled = true;
+            customApply.textContent = 'Kontrol ediliyor...';
+            try {
+                const freshData = await fetchLeaderboard(true);
+                const selfLname = name.toLowerCase();
+                const tLower = text.toLowerCase();
+                const taken = freshData.some(e =>
+                    e.title && typeof e.title.text === 'string'
+                    && e.title.text.trim().toLowerCase() === tLower
+                    && (e.name || '').toLowerCase() !== selfLname
+                );
+                if (taken) {
+                    showNotification(`"${text}" title'ı başka biri tarafından alınmış!`, 'warning');
+                    customApply.disabled = false;
+                    customApply.textContent = 'Özeli Uygula';
+                    return;
+                }
+            } catch (err) {
+                console.error('Title uniqueness check failed:', err);
+            }
             setSelectedTitle({ source: 'custom', text, color: selectedColor });
             modal.classList.remove('open');
+            customApply.disabled = false;
+            customApply.textContent = 'Özeli Uygula';
             await syncTitleToLeaderboard();
             openProfileModal();
         };
