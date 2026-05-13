@@ -2846,18 +2846,12 @@ body[data-theme="ocean"] #timer-bar.timer-warning { background: linear-gradient(
     padding: 24px 16px; display: flex; flex-direction: column;
     align-items: center; gap: 20px; min-height: 200px; justify-content: center;
     cursor: pointer;
-    transition: transform 0.05s, background 0.2s;
 }
-#luck-zone.luck-shake { animation: luck-shake 0.35s; }
-#luck-zone.luck-flash-perfect { background: rgba(46,204,113,0.15); }
-#luck-zone.luck-flash-great { background: rgba(72,219,251,0.12); }
-#luck-zone.luck-flash-good { background: rgba(240,192,64,0.10); }
+#luck-zone.luck-shake { animation: luck-shake 0.25s; }
 @keyframes luck-shake {
     0%,100% { transform: translateX(0); }
-    20% { transform: translateX(-8px); }
-    40% { transform: translateX(7px); }
-    60% { transform: translateX(-5px); }
-    80% { transform: translateX(3px); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(4px); }
 }
 #luck-message {
     font-size: 0.95rem; color: #7a8a9a; text-align: center; line-height: 1.8;
@@ -2868,72 +2862,55 @@ body[data-theme="ocean"] #timer-bar.timer-warning { background: linear-gradient(
     align-items: center; gap: 14px; position: relative;
 }
 #luck-bar-track {
-    width: 100%; height: 64px; background: rgba(255,255,255,0.07);
-    border-radius: 16px; position: relative; overflow: visible;
-    border: 1px solid rgba(255,255,255,0.12);
-    box-shadow: inset 0 2px 12px rgba(0,0,0,0.25);
+    width: 100%; height: 56px; background: rgba(255,255,255,0.06);
+    border-radius: 14px; position: relative; overflow: visible;
+    border: 1px solid rgba(255,255,255,0.1);
 }
 #luck-target-zone {
-    position: absolute; top: 0; height: 100%; border-radius: 14px;
-    border: 2px solid #2ecc71;
-    background: rgba(46,204,113,0.10);
-    transition: left 0.3s, width 0.3s, border-color 0.3s, background 0.3s;
+    position: absolute; top: 0; height: 100%; border-radius: 12px;
+    border: 1px solid rgba(46,204,113,0.6);
+    background: rgba(46,204,113,0.08);
+    transition: left 0.25s, width 0.25s;
     pointer-events: none;
 }
 #luck-great-zone {
-    position: absolute; top: 0; height: 100%; border-radius: 12px;
-    background: rgba(72,219,251,0.18);
-    border: 1px dashed rgba(72,219,251,0.5);
-    transition: left 0.3s, width 0.3s;
+    position: absolute; top: 0; height: 100%; border-radius: 10px;
+    background: rgba(72,219,251,0.15);
+    transition: left 0.25s, width 0.25s;
     pointer-events: none;
 }
 #luck-perfect-zone {
-    position: absolute; top: 0; height: 100%; border-radius: 10px;
-    background: linear-gradient(180deg, rgba(240,192,64,0.5), rgba(240,192,64,0.25));
-    box-shadow: 0 0 14px rgba(240,192,64,0.5), inset 0 0 8px rgba(240,192,64,0.4);
-    transition: left 0.3s, width 0.3s;
+    position: absolute; top: 0; height: 100%; border-radius: 8px;
+    background: rgba(240,192,64,0.4);
+    transition: left 0.25s, width 0.25s;
     pointer-events: none;
 }
 #luck-center-mark {
-    position: absolute; top: -6px; left: 50%; width: 2px; height: calc(100% + 12px);
-    background: rgba(255,255,255,0.7);
+    position: absolute; top: -4px; left: 50%; width: 2px; height: calc(100% + 8px);
+    background: rgba(255,255,255,0.55);
     transform: translateX(-50%);
     pointer-events: none;
-    box-shadow: 0 0 4px rgba(255,255,255,0.5);
 }
 #luck-needle {
-    position: absolute; top: -4px; left: 0; width: 6px; height: calc(100% + 8px);
-    background: linear-gradient(180deg, #fff, #f0c040);
-    border-radius: 3px;
+    position: absolute; top: -3px; left: 0; width: 5px; height: calc(100% + 6px);
+    background: #f0c040;
+    border-radius: 2px;
     will-change: transform;
-    box-shadow: 0 0 12px rgba(240,192,64,0.8), 0 0 24px rgba(240,192,64,0.4);
-    transform: translateX(-3px);
+    box-shadow: 0 0 6px rgba(240,192,64,0.6);
+    transform: translateX(-2.5px);
 }
-#luck-needle.needle-perfect {
-    background: linear-gradient(180deg, #fff, #2ecc71);
-    box-shadow: 0 0 20px rgba(46,204,113,1), 0 0 40px rgba(46,204,113,0.6);
-}
-#luck-needle.needle-great {
-    background: linear-gradient(180deg, #fff, #48dbfb);
-    box-shadow: 0 0 16px rgba(72,219,251,0.9);
-}
-#luck-needle.needle-good {
-    background: linear-gradient(180deg, #fff, #f0c040);
-    box-shadow: 0 0 14px rgba(240,192,64,0.8);
-}
-#luck-needle.needle-miss {
-    background: linear-gradient(180deg, #fff, #e74c3c);
-    box-shadow: 0 0 18px rgba(231,76,60,0.9);
-}
+#luck-needle.needle-perfect { background: #2ecc71; box-shadow: 0 0 10px rgba(46,204,113,0.9); }
+#luck-needle.needle-great   { background: #48dbfb; box-shadow: 0 0 8px rgba(72,219,251,0.8); }
+#luck-needle.needle-good    { background: #f0c040; box-shadow: 0 0 6px rgba(240,192,64,0.8); }
+#luck-needle.needle-miss    { background: #e74c3c; box-shadow: 0 0 8px rgba(231,76,60,0.8); }
 #luck-tap-hint {
-    font-family: 'Fredoka One', cursive; font-size: 1.2rem;
-    letter-spacing: 1px;
-    transition: color 0.15s, transform 0.15s;
+    font-family: 'Fredoka One', cursive; font-size: 1.1rem;
+    letter-spacing: 0.5px;
 }
-#luck-tap-hint.hint-perfect { color: #2ecc71; transform: scale(1.3); }
-#luck-tap-hint.hint-great { color: #48dbfb; transform: scale(1.15); }
+#luck-tap-hint.hint-perfect { color: #2ecc71; }
+#luck-tap-hint.hint-great { color: #48dbfb; }
 #luck-tap-hint.hint-good { color: #f0c040; }
-#luck-tap-hint.hint-miss { color: #e74c3c; transform: scale(0.9); }
+#luck-tap-hint.hint-miss { color: #e74c3c; }
 #luck-particles { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
 .luck-particle {
     position: absolute; width: 8px; height: 8px; border-radius: 50%;

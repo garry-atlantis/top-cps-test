@@ -2428,8 +2428,7 @@ function handleLuckTap() {
         }
 
         luckScoreEl.textContent = state.luckScore;
-        luckZoneNode.classList.add(`luck-flash-${tier}`);
-        spawnLuckParticles(color, tier === 'perfect' ? 16 : tier === 'great' ? 10 : 6);
+        spawnLuckParticles(color, tier === 'perfect' ? 6 : tier === 'great' ? 4 : 3);
 
         // Combo popup: only show when combo gives extra (>=2 combo or +life)
         if (bonusLife) {
@@ -2447,7 +2446,6 @@ function handleLuckTap() {
         playClickSound();
 
         setTimeout(() => {
-            luckZoneNode.classList.remove(`luck-flash-${tier}`);
             setNeedleClass(null);
             setLuckHintClass(null);
             luckTapHint.textContent = 'DOKUN!';
@@ -2456,7 +2454,7 @@ function handleLuckTap() {
             _luckLastTime = 0;
             state.luckState = 'running';
             state.luckAnimId = requestAnimationFrame(animateLuck);
-        }, 130);
+        }, 100);
     } else {
         // Miss path
         state.luckMisses++;
@@ -2464,12 +2462,12 @@ function handleLuckTap() {
         state.luckLives--;
         updateLuckLives();
         updateLuckCombo();
-        spawnLuckParticles(color, 8);
+        spawnLuckParticles(color, 4);
         luckZoneNode.classList.add('luck-shake');
-        setTimeout(() => luckZoneNode.classList.remove('luck-shake'), 360);
+        setTimeout(() => luckZoneNode.classList.remove('luck-shake'), 260);
 
         if (state.luckLives <= 0) {
-            setTimeout(() => endLuck(), 350);
+            setTimeout(() => endLuck(), 250);
         } else {
             setTimeout(() => {
                 setNeedleClass(null);
@@ -2480,7 +2478,7 @@ function handleLuckTap() {
                 _luckLastTime = 0;
                 state.luckState = 'running';
                 state.luckAnimId = requestAnimationFrame(animateLuck);
-            }, 280);
+            }, 200);
         }
     }
 }
