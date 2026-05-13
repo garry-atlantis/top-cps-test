@@ -85,6 +85,10 @@ const state = {
     // UI prefs
     avatar: localStorage.getItem('avatar') || '',
     theme: localStorage.getItem('theme') || 'dark',
+    selectedTitle: (() => {
+        try { return JSON.parse(localStorage.getItem('selectedTitle') || 'null'); }
+        catch { return null; }
+    })(),
 };
 
 // ====== DOM ======
@@ -964,6 +968,100 @@ function getLeaderboardTitle(gameType, rank) {
     return (LEADERBOARD_TITLES[gameType] && LEADERBOARD_TITLES[gameType][rank]) || '';
 }
 
+// Rank-based colors for default titles
+const TITLE_RANK_COLORS = { 1: '#f0c040', 2: '#c0c0c0', 3: '#cd7f32', 4: '#48dbfb', 5: '#48dbfb' };
+// Available colors for custom titles (rank-1 perk)
+const CUSTOM_TITLE_COLORS = ['#f0c040', '#e74c3c', '#2ecc71', '#48dbfb', '#9b59b6', '#ff6b9d', '#ffffff', '#ff7f50'];
+
+// Compute a player's best rank for a given game type from leaderboard data.
+// Returns 1..N or 0 if not present.
+function getPlayerBestRank(name, type, data) {
+    const cfg = AUTO_SUBMIT_CONFIG[type];
+    if (!cfg) return 0;
+    const entries = data.filter(e => cfg.matchType(e) && typeof e[cfg.field] === 'number');
+    const bestPerPlayer = {};
+    entries.forEach(e => {
+        const k = (e.name || '').toLowerCase();
+        if (!k) return;
+        const v = e[cfg.field];
+        if (!bestPerPlayer[k] || (cfg.higherBetter ? v > bestPerPlayer[k][cfg.field] : v < bestPerPlayer[k][cfg.field])) {
+            bestPerPlayer[k] = e;
+        }
+    });
+    const sorted = Object.values(bestPerPlayer).sort((a, b) =>
+        cfg.higherBetter ? b[cfg.field] - a[cfg.field] : a[cfg.field] - b[cfg.field]
+    );
+    const idx = sorted.findIndex(e => e.name.toLowerCase() === name.toLowerCase());
+    return idx >= 0 ? idx + 1 : 0;
+}
+
+// Returns array of titles the player owns (top 5 in any game).
+// Each item: { source, type, rank, text, color }
+function getOwnedTitles(name, data) {
+    const owned = [];
+    if (!name) return owned;
+    Object.keys(LEADERBOARD_TITLES).forEach(type => {
+        const rank = getPlayerBestRank(name, type, data);
+        if (rank >= 1 && rank <= 5) {
+            const text = LEADERBOARD_TITLES[type][rank];
+            if (text) owned.push({
+                source: `${type}-${rank}`,
+                type, rank, text,
+                color: TITLE_RANK_COLORS[rank] || '#f0c040',
+            });
+        }
+    });
+    return owned;
+}
+
+function canCustomTitle(name, data) {
+    return getOwnedTitles(name, data).some(t => t.rank === 1);
+}
+
+// Sync the current selectedTitle to all of this player's leaderboard entries.
+async function syncTitleToLeaderboard() {
+    if (!state.registeredName) return;
+    const data = await fetchLeaderboard(true);
+    const lname = state.registeredName.toLowerCase();
+    let touched = false;
+    data.forEach(e => {
+        if ((e.name || '').toLowerCase() === lname) {
+            if (state.selectedTitle && state.selectedTitle.text) {
+                if (!e.title || e.title.text !== state.selectedTitle.text || e.title.color !== state.selectedTitle.color) {
+                    e.title = { text: state.selectedTitle.text, color: state.selectedTitle.color };
+                    touched = true;
+                }
+            } else if (e.title) {
+                delete e.title;
+                touched = true;
+            }
+        }
+    });
+    if (!touched) return;
+    if (isJsonBinConfigured()) {
+        try {
+            await fetch(`${JSONBIN_CONFIG.BASE_URL}/b/${JSONBIN_CONFIG.BIN_ID}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_CONFIG.API_KEY },
+                body: JSON.stringify({ scores: data }),
+            });
+            state.leaderboardData = data;
+            lbCacheTime = 0;
+            localStorage.setItem('leaderboardCache', JSON.stringify(data));
+        } catch (err) { console.error('Title sync error:', err); }
+    } else {
+        state.leaderboardData = data;
+        localStorage.setItem('leaderboard', JSON.stringify(data));
+    }
+}
+
+function setSelectedTitle(title) {
+    // title: { source, text, color } or null
+    state.selectedTitle = title;
+    if (title) localStorage.setItem('selectedTitle', JSON.stringify(title));
+    else localStorage.removeItem('selectedTitle');
+}
+
 function showRankNotification(rank, type) {
     const label = TYPE_LABELS[type] || type;
     const rankText = `${rank}.`;
@@ -1629,6 +1727,19 @@ async function openProfileModal() {
         ? `Üye: ${earliest.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}`
         : 'Yeni üye';
 
+    // Title display + change button visibility
+    const titleEl = document.getElementById('profile-current-title');
+    const changeTitleBtn = document.getElementById('change-title-btn');
+    const owned = getOwnedTitles(myName, data);
+    if (state.selectedTitle && state.selectedTitle.text) {
+        titleEl.textContent = state.selectedTitle.text;
+        titleEl.style.color = state.selectedTitle.color || '#f0c040';
+    } else {
+        titleEl.textContent = owned.length ? 'Title seç →' : '';
+        titleEl.style.color = '#7a8a9a';
+    }
+    changeTitleBtn.style.display = owned.length > 0 ? '' : 'none';
+
     // Stats: total records, top-3 count, average rank
     let totalRecords = 0;
     let topThreeCount = 0;
@@ -1699,6 +1810,105 @@ function initProfile() {
             };
             avatarClose.addEventListener('click', onAvatarClose);
         });
+    }
+    initTitlePicker();
+}
+
+// ====== TITLE PICKER ======
+function initTitlePicker() {
+    const changeBtn = document.getElementById('change-title-btn');
+    const modal = document.getElementById('title-picker-modal');
+    const closeBtn = document.getElementById('title-picker-close');
+    const clearBtn = document.getElementById('clear-title-btn');
+    if (!changeBtn || !modal) return;
+
+    changeBtn.addEventListener('click', openTitlePicker);
+    closeBtn.addEventListener('click', () => modal.classList.remove('open'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+    clearBtn.addEventListener('click', async () => {
+        setSelectedTitle(null);
+        modal.classList.remove('open');
+        await syncTitleToLeaderboard();
+        openProfileModal();
+    });
+}
+
+async function openTitlePicker() {
+    const modal = document.getElementById('title-picker-modal');
+    const list = document.getElementById('owned-titles-list');
+    const customSection = document.getElementById('custom-title-section');
+    const customInput = document.getElementById('custom-title-input');
+    const customColors = document.getElementById('custom-title-colors');
+    const customApply = document.getElementById('custom-title-apply');
+
+    const name = (state.registeredName || playerNameInput.value.trim() || '').trim();
+    if (!name) return;
+
+    modal.classList.add('open');
+    list.innerHTML = '<div class="title-option-empty">Yükleniyor...</div>';
+
+    const data = await fetchLeaderboard();
+    const owned = getOwnedTitles(name, data);
+    const canCustom = canCustomTitle(name, data);
+
+    if (owned.length === 0) {
+        list.innerHTML = '<div class="title-option-empty">Henüz title kazanmadın. İlk 5\'e gir!</div>';
+    } else {
+        list.innerHTML = owned.map(t => {
+            const isSel = state.selectedTitle && state.selectedTitle.source === t.source;
+            return `<div class="title-option ${isSel ? 'selected' : ''}" data-source="${t.source}">
+                <div>
+                    <div class="title-option-text" style="color:${t.color}">${escapeHtml(t.text)}</div>
+                    <div class="title-option-meta">${TYPE_LABELS[t.type] || t.type} #${t.rank}</div>
+                </div>
+                <div style="font-size:0.75rem;color:${t.color}">${isSel ? '✓' : 'Seç'}</div>
+            </div>`;
+        }).join('');
+        list.querySelectorAll('.title-option').forEach(el => {
+            el.addEventListener('click', async () => {
+                const src = el.dataset.source;
+                const t = owned.find(x => x.source === src);
+                if (!t) return;
+                setSelectedTitle({ source: t.source, text: t.text, color: t.color });
+                modal.classList.remove('open');
+                await syncTitleToLeaderboard();
+                openProfileModal();
+            });
+        });
+    }
+
+    // Custom title: only for rank-1 holders
+    customSection.style.display = canCustom ? '' : 'none';
+    if (canCustom) {
+        // Pre-fill if custom currently selected
+        if (state.selectedTitle && state.selectedTitle.source === 'custom') {
+            customInput.value = state.selectedTitle.text;
+        }
+        // Render color swatches
+        let selectedColor = (state.selectedTitle && state.selectedTitle.source === 'custom')
+            ? state.selectedTitle.color
+            : CUSTOM_TITLE_COLORS[0];
+        const renderSwatches = () => {
+            customColors.innerHTML = CUSTOM_TITLE_COLORS.map(c =>
+                `<div class="title-color-swatch ${c === selectedColor ? 'selected' : ''}" data-color="${c}" style="background:${c}"></div>`
+            ).join('');
+            customColors.querySelectorAll('.title-color-swatch').forEach(s => {
+                s.addEventListener('click', () => {
+                    selectedColor = s.dataset.color;
+                    renderSwatches();
+                });
+            });
+        };
+        renderSwatches();
+        customApply.onclick = async () => {
+            const text = (customInput.value || '').trim();
+            if (!text) { customInput.focus(); return; }
+            if (isInappropriateName(text)) { showNotification('Uygunsuz title!', 'warning'); return; }
+            setSelectedTitle({ source: 'custom', text, color: selectedColor });
+            modal.classList.remove('open');
+            await syncTitleToLeaderboard();
+            openProfileModal();
+        };
     }
 }
 
@@ -1929,6 +2139,7 @@ async function submitScore(name, value, mode, type) {
     }
     const entry = { name, type, date: new Date().toISOString() };
     if (state.avatar) entry.avatar = state.avatar;
+    if (state.selectedTitle && state.selectedTitle.text) entry.title = { text: state.selectedTitle.text, color: state.selectedTitle.color };
     if (type === 'cps') { entry.cps = value; entry.mode = mode; }
     else if (type === 'accuracy' || type === 'color' || type === 'sequence' || type === 'luck' || type === 'panic') { entry.score = value; }
     else { entry.time = value; }  // reaction
@@ -2018,6 +2229,10 @@ function upsertScore(data, entry, type) {
     if (entry.avatar) {
         data.forEach(e => { if (e.name.toLowerCase() === lname) e.avatar = entry.avatar; });
     }
+    // Sync title on existing entries (or clear if not set)
+    if (entry.title) {
+        data.forEach(e => { if (e.name.toLowerCase() === lname) e.title = entry.title; });
+    }
 }
 
 function renderLeaderboard(data, tabType) {
@@ -2101,9 +2316,20 @@ function renderLeaderboard(data, tabType) {
         const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
         const isSelf = entry.name.toLowerCase() === playerName;
         const avatar = avatarHtml(entry.avatar, 'lb-avatar');
-        const title = getLeaderboardTitle(tabType, rank);
-        const nameHtml = title
-            ? `<div class="lb-name-wrap"><div class="lb-name">${escapeHtml(entry.name)}</div><div class="lb-title">${escapeHtml(title)}</div></div>`
+        // Title priority: player's chosen title (entry.title) > rank-based default for this tab
+        let titleText = '', titleColor = '';
+        if (entry.title && entry.title.text) {
+            titleText = entry.title.text;
+            titleColor = entry.title.color || TITLE_RANK_COLORS[Math.min(rank, 5)] || '#f0c040';
+        } else {
+            const defaultText = getLeaderboardTitle(tabType, rank);
+            if (defaultText) {
+                titleText = defaultText;
+                titleColor = TITLE_RANK_COLORS[rank] || '#f0c040';
+            }
+        }
+        const nameHtml = titleText
+            ? `<div class="lb-name-wrap"><div class="lb-name">${escapeHtml(entry.name)}</div><div class="lb-title" style="color:${titleColor}">${escapeHtml(titleText)}</div></div>`
             : `<div class="lb-name">${escapeHtml(entry.name)}</div>`;
         return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rank}</div>${avatar}${nameHtml}<div class="lb-score">${scoreFormat(entry)}</div></div>`;
     }).join('');

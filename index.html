@@ -362,6 +362,8 @@
                             <button id="profile-change-photo-btn" title="Profil fotoğrafı değiştir">Fotoğraf Değiştir</button>
                         </div>
                         <div id="profile-name">—</div>
+                        <div id="profile-current-title"></div>
+                        <button id="change-title-btn" style="display:none">Title Değiştir</button>
                         <div id="profile-since"></div>
                     </div>
                     <div id="profile-stats-grid"></div>
@@ -483,6 +485,27 @@
                         <li>Karanlık tema</li>
                     </ul>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Title Picker Modal -->
+    <div id="title-picker-modal">
+        <div id="title-picker-box">
+            <div id="title-picker-header">
+                <h2>Title Seç</h2>
+                <button id="title-picker-close">×</button>
+            </div>
+            <div id="title-picker-body">
+                <div id="title-picker-info">Kazandığın title'lar (sıralamada ilk 5):</div>
+                <div id="owned-titles-list"></div>
+                <div id="custom-title-section" style="display:none">
+                    <div class="title-section-label">Özel Title (1. sıraya özel)</div>
+                    <input id="custom-title-input" type="text" maxlength="16" placeholder="Kendi title'ın (max 16)">
+                    <div id="custom-title-colors"></div>
+                    <button id="custom-title-apply">Özeli Uygula</button>
+                </div>
+                <button id="clear-title-btn">Title'ı Kaldır</button>
             </div>
         </div>
     </div>
