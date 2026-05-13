@@ -924,12 +924,12 @@ const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', 
 // Titles shown under names in the leaderboard for top 5 of each game type.
 // Edit these to set the title text per (gameType, rank). Empty string = no title.
 const LEADERBOARD_TITLES = {
-    cps:      { 1: 'CLICK ŞEYTANI',    2: 'PARMAK FIRTINASI', 3: 'TURBO PARMAK',      4: 'CLICK PRO',         5: 'HIZLI ELLER' },
-    reaction: { 1: 'IŞIK HIZI',        2: 'REFLEKS CANAVARI', 3: 'ŞAHİN GÖZ',         4: 'NÖRON',             5: 'TETİKTE' },
-    accuracy: { 1: 'NİŞAN TANRISI',    2: 'SNIPER ELİT',      3: 'KESKİN GÖZ',        4: 'HEDEF AVCISI',      5: 'SABİT EL' },
-    color:    { 1: 'PRİZMA EFENDİSİ',  2: 'RENK GURUSU',      3: 'SPEKTRUM',          4: 'KROMA USTASI',      5: 'PALETÇİ' },
-    sequence: { 1: 'ZİHİN MİMARI',     2: 'HAFIZA CANAVARI',  3: 'BRAIN HACK',        4: 'ZİNCİR KIRMAYAN',   5: 'HATIRLAYAN' },
-    luck:     { 1: 'KADER EFENDİSİ',   2: 'FORTUNA',          3: 'TALİH KUŞU',        4: 'SOĞUKKANLI',        5: 'ZAMANCI' },
+    cps:      { 1: 'KLAVYEYİ YEDİM',   2: 'PARMAKLAR AYRI',   3: 'EL YAPIMI',         4: 'ELİM ÇABUK',        5: 'YETİŞEMEZSİN' },
+    reaction: { 1: 'UYUMADIM',         2: 'ANINDA',           3: 'TETİKTEYİM',        4: 'GEÇ KALMAM',        5: 'UYANIK' },
+    accuracy: { 1: 'ISKALAMAM',        2: 'TEK ATIŞ',         3: 'ELİM TİTREMEZ',     4: 'GÖZÜM VAR',         5: 'DÜMDÜZ' },
+    color:    { 1: 'AYIRIRIM',         2: 'BERRAK GÖRÜRÜM',   3: 'RENK KÖRÜ DEĞİL',   4: 'TAYFIM VAR',        5: 'RENKLİYİM' },
+    sequence: { 1: 'UNUTMAM',          2: 'KAFAMDA NOT',      3: 'HER ŞEY AKLIMDA',   4: 'EZBERİM VAR',       5: 'HATIRLARIM' },
+    luck:     { 1: 'ŞANSA GEREK YOK',  2: 'DENK GELDİ',       3: 'TUTTURDUM',         4: 'ZAMANI BİLİRİM',    5: 'TAHMİNCİYİM' },
 };
 function getLeaderboardTitle(gameType, rank) {
     return (LEADERBOARD_TITLES[gameType] && LEADERBOARD_TITLES[gameType][rank]) || '';
