@@ -347,7 +347,7 @@ function initAdminPanel() {
     adminClose.addEventListener('click', () => adminModal.classList.remove('open'));
     adminModal.addEventListener('click', (e) => { if (e.target === adminModal) adminModal.classList.remove('open'); });
     adminRefresh.addEventListener('click', async () => {
-        state.leaderboardData = null; state.lbCacheTime = 0;
+        state.leaderboardData = null; lbCacheTime = 0;
         await renderAdminList(adminTab);
     });
     adminSearch.addEventListener('input', () => renderAdminList(adminTab, adminSearch.value));
@@ -361,7 +361,7 @@ function initAdminPanel() {
     });
 }
 
-const ADMIN_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', color: 'Renk', chimp: 'Chimp', sequence: 'Sıra' };
+const ADMIN_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', color: 'Renk', sequence: 'Sıra', luck: 'Şans', panic: 'Panik' };
 
 async function renderAdminList(tabType, search = '') {
     const adminList = document.getElementById('admin-list');
@@ -940,7 +940,7 @@ function createNotificationStack() {
     return c;
 }
 
-const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', number: 'Sayı', color: 'Renk', chimp: 'Chimp', sequence: 'Sıra' };
+const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', color: 'Renk', sequence: 'Sıra', luck: 'Şans', panic: 'Panik' };
 
 function showRankNotification(rank, type) {
     const label = TYPE_LABELS[type] || type;
@@ -1041,7 +1041,7 @@ nameModalConfirm.addEventListener('click', async () => {
                             return;
                         }
                         // Verify the update by fetching again
-                        state.lbCacheTime = 0;
+                        lbCacheTime = 0;
                         const verifyData = await fetchLeaderboard(true);
                         const stillHasOldName = verifyData.some(e => e.name.toLowerCase() === oldName.toLowerCase());
                         if (stillHasOldName) {
@@ -1059,7 +1059,7 @@ nameModalConfirm.addEventListener('click', async () => {
                 }
                 state.leaderboardData = data;
                 // Force cache refresh
-                state.lbCacheTime = 0;
+                lbCacheTime = 0;
                 localStorage.setItem('leaderboardCache', JSON.stringify(data));
                 // Refresh leaderboard if visible
                 if (leaderboardOverlay.classList.contains('open')) {
@@ -2466,8 +2466,8 @@ function spawnPanicBlock() {
     block.className = 'panic-block';
     block.style.background = PANIC_COLORS[colorKey];
     block.dataset.color = colorKey;
-    // Random horizontal position
-    const leftPct = 5 + Math.random() * 65;
+    // Random horizontal position (symmetric, blocks stay in bounds)
+    const leftPct = 10 + Math.random() * 80;
     block.style.left = `${leftPct}%`;
     block.style.top = '0%';
     panicBlocksContainer.appendChild(block);
@@ -2588,7 +2588,12 @@ function resetPanic() {
     statPanicLast.textContent = '—';
 }
 
-panicMessage.addEventListener('click', () => { if (state.panicState === 'idle' || state.panicState === 'ended') startPanic(); });
+const _startPanicIfIdle = (e) => {
+    if (e && e.cancelable) e.preventDefault();
+    if (state.panicState === 'idle' || state.panicState === 'ended') startPanic();
+};
+panicMessage.addEventListener('click', _startPanicIfIdle);
+panicMessage.addEventListener('touchstart', _startPanicIfIdle, { passive: false });
 
 panicBtns.forEach(btn => {
     const tap = (e) => { e.preventDefault(); handlePanicBtn(btn.dataset.color); };
