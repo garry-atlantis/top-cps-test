@@ -27,6 +27,7 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 28px;
+    width: 100%;
 }
 
 /* Header */
@@ -3186,4 +3187,92 @@ body[data-theme="ocean"] #timer-bar.timer-warning { background: linear-gradient(
     100% { opacity: 0; transform: translate(-50%, -50px) scale(1); }
 }
 #luck-stats { display: flex; gap: 10px; width: 100%; justify-content: center; }
+
+/* ========== TABLET (≥768px) ========== */
+@media (min-width: 768px) {
+    #app {
+        max-width: 640px;
+        padding: 36px 28px;
+        gap: 32px;
+    }
+    #header h1 { font-size: 1.9rem; }
+    #kbd-hint { font-size: 0.8rem; }
+    .cps-badge { padding: 12px 22px; }
+    .cps-value { font-size: 2.6rem; }
+    #click-button { height: 180px; }
+    #click-button.active-game { height: 320px; }
+    .click-text { font-size: 2rem; }
+    .game-type-btn { font-size: 1rem; padding: 12px 18px; }
+    .mode-btn { font-size: 1rem; padding: 12px 22px; }
+    #leaderboard-btn, #reset-btn, #profile-btn { font-size: 1rem; padding: 14px 18px; }
+    #leaderboard-panel { max-width: 600px; }
+    #profile-box { max-width: 540px; }
+    #title-picker-box { max-width: 540px; }
+    #admin-box, #avatar-box, #theme-box, #changelog-box { max-width: 600px; }
+}
+
+/* ========== DESKTOP (≥1024px) ========== */
+@media (min-width: 1024px) {
+    #app {
+        max-width: 880px;
+        padding: 48px 36px;
+        gap: 36px;
+    }
+    #header h1 { font-size: 2.3rem; }
+    #mute-btn, #theme-btn, #changelog-btn, #admin-btn {
+        height: 36px;
+        min-width: 56px;
+        font-size: 0.8rem;
+        padding: 0 14px;
+    }
+    #cps-labels { gap: 24px; }
+    .cps-badge { min-width: 160px; padding: 14px 26px; }
+    .cps-value { font-size: 3rem; }
+    .cps-label { font-size: 0.8rem; }
+    #click-button { height: 220px; }
+    #click-button.active-game { height: 380px; }
+    .click-text { font-size: 2.4rem; }
+    .click-count { font-size: 1rem; }
+    #stats-panel {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    .stat-card { padding: 14px 16px; }
+    .stat-value { font-size: 1.4rem; }
+    #game-type-selector { gap: 10px; }
+    .game-type-btn { font-size: 1.05rem; padding: 14px 20px; }
+    #mode-selector { gap: 12px; }
+    .mode-btn { font-size: 1.05rem; padding: 14px 26px; }
+    #player-name-input { width: 240px; font-size: 1.05rem; padding: 10px 18px; }
+    #btn-row { max-width: 640px; gap: 14px; }
+    #leaderboard-btn, #reset-btn, #profile-btn {
+        font-size: 1rem; padding: 14px 22px;
+    }
+    /* Modals: larger and centered */
+    #leaderboard-panel { max-width: 720px; max-height: 80vh; }
+    #profile-box { max-width: 640px; }
+    #title-picker-box { max-width: 600px; }
+    #admin-box, #avatar-box, #theme-box, #changelog-box { max-width: 680px; }
+    /* Reaction test bigger */
+    #reaction-box { height: 260px; }
+    .reaction-result-value { font-size: 3.2rem; }
+    /* Color test bigger */
+    #color-display-text { font-size: 3rem; }
+    /* Sequence tiles bigger */
+    #sequence-grid { max-width: 380px; }
+    /* Luck bar wider */
+    #luck-bar-wrap { max-width: 720px; }
+    /* Accuracy/luck info cards bigger */
+    .acc-info-card { padding: 14px 18px; }
+    .acc-info-value { font-size: 1.4rem; }
+    /* Bigger countdown */
+    #countdown-number { font-size: 8rem; }
+}
+
+/* ========== EXTRA WIDE (≥1440px) ========== */
+@media (min-width: 1440px) {
+    #app { max-width: 1000px; }
+    .click-text { font-size: 2.8rem; }
+    #click-button { height: 260px; }
+    #click-button.active-game { height: 440px; }
+}
 
