@@ -2913,10 +2913,19 @@ luckZoneEl.addEventListener('click', () => {
     const startBtn = document.getElementById('welcome-start-btn');
     const skipBtn = document.getElementById('welcome-skip-btn');
 
-    // Show only if user hasn't seen welcome AND hasn't already registered a name
+    // Show once per player (every player, including returning ones who haven't seen this onboarding yet)
     const seen = localStorage.getItem('hasSeenWelcome');
-    const hasName = localStorage.getItem('registeredName');
-    if (seen || hasName) return;
+    if (seen) return;
+
+    // If user already has a registered name, skip the name input section
+    const existingName = localStorage.getItem('registeredName');
+    if (existingName) {
+        const nameRow = document.getElementById('welcome-name-row');
+        const skipBtnEl = document.getElementById('welcome-skip-btn');
+        if (nameRow) nameRow.style.display = 'none';
+        if (skipBtnEl) skipBtnEl.style.display = 'none';
+        startBtn.textContent = 'tamam';
+    }
 
     // Open immediately on next frame for a clean CSS-driven fade-in
     requestAnimationFrame(() => modal.classList.add('open'));
@@ -2927,6 +2936,8 @@ luckZoneEl.addEventListener('click', () => {
     }
 
     function tryStart() {
+        // If they already have a name, just dismiss
+        if (localStorage.getItem('registeredName')) { dismiss(); return; }
         const name = (nameInput.value || '').trim();
         if (name.length < 2) {
             nameInput.style.borderColor = '#ff6b6b';
