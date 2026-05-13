@@ -29,6 +29,17 @@ const JSONBIN_CONFIG = {
     BASE_URL: 'https://api.jsonbin.io/v3',
 };
 
+// EARLY PREFETCH: start leaderboard fetch the moment script starts parsing.
+// This runs in parallel with the rest of the script + DOM setup, so by the
+// time the user clicks "Sıralama", the network round-trip is mostly done.
+const _earlyLbPromise = (JSONBIN_CONFIG.API_KEY !== 'BURAYA_API_KEY_YAPISTIR' && JSONBIN_CONFIG.BIN_ID !== 'BURAYA_BIN_ID_YAPISTIR')
+    ? fetch(`${JSONBIN_CONFIG.BASE_URL}/b/${JSONBIN_CONFIG.BIN_ID}/latest`, { headers: { 'X-Master-Key': JSONBIN_CONFIG.API_KEY } })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => (d && d.record && Array.isArray(d.record.scores)) ? d.record.scores : null)
+        .catch(() => null)
+    : null;
+let _earlyConsumed = false;
+
 const IMGBB_API_KEY = '4f95844c7578cccb02888e4a96559243';
 
 const state = {
@@ -2115,6 +2126,23 @@ let _lbInflight = null; // dedupe concurrent fetches
 
 async function _fetchLeaderboardNetwork() {
     if (_lbInflight) return _lbInflight;
+    // First call: use the early-started prefetch promise if it exists
+    if (_earlyLbPromise && !_earlyConsumed) {
+        _earlyConsumed = true;
+        _lbInflight = (async () => {
+            try {
+                const scores = await _earlyLbPromise;
+                if (scores) {
+                    state.leaderboardData = scores;
+                    lbCacheTime = Date.now();
+                    localStorage.setItem('leaderboardCache', JSON.stringify(scores));
+                    return scores;
+                }
+                return getLocalLeaderboard();
+            } finally { _lbInflight = null; }
+        })();
+        return _lbInflight;
+    }
     _lbInflight = (async () => {
         try {
             const res = await fetch(`${JSONBIN_CONFIG.BASE_URL}/b/${JSONBIN_CONFIG.BIN_ID}/latest`, { headers: { 'X-Master-Key': JSONBIN_CONFIG.API_KEY } });
