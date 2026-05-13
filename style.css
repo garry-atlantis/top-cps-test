@@ -899,6 +899,7 @@ body {
 
 .game-type-btn {
     flex: 1;
+    min-width: 0;
     font-family: 'Fredoka One', cursive;
     font-size: 0.9rem;
     padding: 10px 16px;
@@ -908,6 +909,9 @@ body {
     color: #7a8a9a;
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .game-type-btn:hover {
@@ -1582,22 +1586,38 @@ body {
     .reaction-result-value { font-size: 2.4rem; }
     #reaction-text { font-size: 1.5rem; }
     .reaction-ready #reaction-text { font-size: 2rem; }
-    #mute-btn, #theme-btn, #changelog-btn, #admin-btn { width: 36px; height: 36px; font-size: 1rem; }
-    #header h1 { font-size: 1.6rem; }
+    /* Header buttons stay as pills (auto width), smaller text on mobile */
+    #mute-btn, #theme-btn, #changelog-btn, #admin-btn {
+        height: 30px;
+        min-width: 40px;
+        padding: 0 9px;
+        font-size: 0.7rem;
+    }
     #kbd-hint { display: none; }
     .rh-value { font-size: 0.75rem; }
     .rh-label { font-size: 0.55rem; }
 
-    /* Larger mode buttons for thumb tapping */
+    /* Mode buttons */
     .mode-btn {
-        padding: 10px 18px;
-        font-size: 0.95rem;
+        padding: 10px 14px;
+        font-size: 0.9rem;
     }
 
-    /* Larger action buttons */
-    #leaderboard-btn, #reset-btn {
-        padding: 14px 24px;
-        font-size: 0.95rem;
+    /* Bottom action buttons — tight padding so 3 fit on narrow screens */
+    #leaderboard-btn, #reset-btn, #profile-btn {
+        padding: 12px 6px;
+        font-size: 0.8rem;
+        gap: 4px;
+    }
+
+    /* Game type buttons */
+    .game-type-btn {
+        padding: 9px 8px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
     }
 
     /* Leaderboard panel takes more screen */
