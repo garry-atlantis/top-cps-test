@@ -2918,8 +2918,8 @@ luckZoneEl.addEventListener('click', () => {
     const hasName = localStorage.getItem('registeredName');
     if (seen || hasName) return;
 
-    // Slight delay so the page is visible behind the fade-in
-    setTimeout(() => modal.classList.add('open'), 150);
+    // Open immediately on next frame for a clean CSS-driven fade-in
+    requestAnimationFrame(() => modal.classList.add('open'));
 
     function dismiss() {
         modal.classList.remove('open');

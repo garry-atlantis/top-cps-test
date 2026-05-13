@@ -2094,18 +2094,23 @@ body {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.92);
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 999;
     padding: 16px;
     backdrop-filter: blur(8px);
-    animation: welcomeBgFade 0.4s ease;
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.35s ease, visibility 0s linear 0.35s;
 }
-#welcome-modal.open { display: flex; }
-@keyframes welcomeBgFade {
-    from { opacity: 0; }
-    to { opacity: 1; }
+#welcome-modal.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 0.35s ease, visibility 0s linear 0s;
 }
 #welcome-box {
     background: linear-gradient(180deg, #1a2540 0%, #0f1828 100%);
@@ -2115,11 +2120,14 @@ body {
     width: 100%;
     max-width: 520px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 80px rgba(72, 219, 251, 0.08);
-    animation: welcomeBoxIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+    transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
 }
-@keyframes welcomeBoxIn {
-    from { opacity: 0; transform: translateY(20px) scale(0.96); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
+#welcome-modal.open #welcome-box {
+    opacity: 1;
+    transform: translateY(0) scale(1);
 }
 #welcome-header { text-align: center; margin-bottom: 24px; }
 #welcome-header h1 {
