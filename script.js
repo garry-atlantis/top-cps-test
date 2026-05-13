@@ -1908,8 +1908,8 @@ async function submitScore(name, value, mode, type) {
     const entry = { name, type, date: new Date().toISOString() };
     if (state.avatar) entry.avatar = state.avatar;
     if (type === 'cps') { entry.cps = value; entry.mode = mode; }
-    else if (type === 'accuracy' || type === 'color') { entry.score = value; }
-    else { entry.time = value; }  // reaction & number
+    else if (type === 'accuracy' || type === 'color' || type === 'sequence' || type === 'luck' || type === 'panic') { entry.score = value; }
+    else { entry.time = value; }  // reaction
     if (!isJsonBinConfigured()) {
         const data = getLocalLeaderboard();
         upsertScore(data, entry, type);
@@ -1985,6 +1985,10 @@ function upsertScore(data, entry, type) {
         else data.push(entry);
     } else if (type === 'color') {
         const idx = data.findIndex(e => e.type === 'color' && e.name.toLowerCase() === lname);
+        if (idx >= 0) { if ((entry.score || 0) > (data[idx].score || 0)) { data[idx].score = entry.score; data[idx].date = entry.date; } }
+        else data.push(entry);
+    } else if (type === 'sequence' || type === 'luck' || type === 'panic') {
+        const idx = data.findIndex(e => e.type === type && e.name.toLowerCase() === lname);
         if (idx >= 0) { if ((entry.score || 0) > (data[idx].score || 0)) { data[idx].score = entry.score; data[idx].date = entry.date; } }
         else data.push(entry);
     }
