@@ -924,7 +924,7 @@ const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', 
 // Titles shown under names in the leaderboard for top 5 of each game type.
 // Edit these to set the title text per (gameType, rank). Empty string = no title.
 const LEADERBOARD_TITLES = {
-    cps:      { 1: 'HERMES',           2: 'KİNETİK NABIZ',    3: 'HİPER KLİK',        4: 'ADRENALİN',         5: 'PARMAK ENERJİSİ' },
+    cps:      { 1: 'HERMES',           2: 'KİNETİK NABIZ',    3: 'HİPER CLICK',       4: 'ADRENALİN',         5: 'PARMAK ENERJİSİ' },
     reaction: { 1: 'ZEUS',             2: 'NÖRO ŞOK',         3: 'HİPER REFLEKS',     4: 'ŞOK DALGASI',       5: 'REFLEKS AĞI' },
     accuracy: { 1: 'ARTEMIS',          2: 'SNIPER ELİT',      3: 'NİŞAN HATTI',       4: 'HEDEF KİLİDİ',      5: 'KESKİN AÇI' },
     color:    { 1: 'IRIS',             2: 'PRİZMA ZİHİN',     3: 'KROMATİK',          4: 'SPEKTRUM',          5: 'OPTİK ZİHİN' },
