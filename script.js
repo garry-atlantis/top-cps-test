@@ -927,8 +927,8 @@ const LEADERBOARD_TITLES = {
     cps:      { 1: 'KLİK ŞEYTANI',     2: 'PARMAK FIRTINASI', 3: 'KAOSUN ELİ',        4: 'TIK CANAVARI',      5: 'PARMAK ÇILGINI' },
     reaction: { 1: 'ANINDA İMHA',      2: 'NÖRO ŞOK',         3: 'UYUMAYAN GÖZ',      4: 'REFLEKS BELASI',    5: 'AYIK' },
     accuracy: { 1: 'KAFADAN VURAN',    2: 'TEK KURŞUN',       3: 'NİŞANCI ŞEYTAN',    4: 'ÖLÜM GÖZÜ',         5: 'DEMİR EL' },
-    color:    { 1: 'RENK ŞEYTANI',     2: 'PRİZMA ZİHİN',     3: 'GÖZ FENERİ',        4: 'AYIRT EDEN',        5: 'RENKLİ KAFA' },
-    sequence: { 1: 'HAFIZA CANAVARI',  2: 'ZİHİN HORTUMU',    3: 'KAFADA HARİTA',     4: 'UNUTMAYAN',         5: 'EZBERCİ' },
+    color:    { 1: 'RENK ŞEYTANI',     2: 'PRİZMA ZİHİN',     3: 'GÖZ FENERİ',        4: 'RENK RADARI',       5: 'RENKLİ KAFA' },
+    sequence: { 1: 'HAFIZA CANAVARI',  2: 'ZİHİN HORTUMU',    3: 'KAFADA HARİTA',     4: 'ZİHİN ARŞİVİ',      5: 'EZBERCİ' },
     luck:     { 1: 'KADERİN GÖZDESİ',  2: 'ZAR ATAN',         3: 'TALİH KAPISI',      4: 'KISMET',            5: 'TAHMİNCİ' },
 };
 function getLeaderboardTitle(gameType, rank) {
