@@ -831,11 +831,11 @@ function handleReactionClick(e) {
             reactionBox.className = 'reaction-result';
             reactionResultValue.textContent = time;
             let rating, color;
-            if (time < 200) { rating = 'İnanılmaz!'; color = '#2ecc71'; }
-            else if (time < 250) { rating = 'Çok hızlı!'; color = '#48dbfb'; }
-            else if (time < 350) { rating = 'İyi!'; color = '#feca57'; }
-            else if (time < 500) { rating = 'Fena değil'; color = '#ff9ff3'; }
-            else { rating = 'Yavaşlamışsın'; color = '#ff6b6b'; }
+            if (time < 200) { rating = 'deli misin sen'; color = '#2ecc71'; }
+            else if (time < 250) { rating = 'çok hızlısın'; color = '#48dbfb'; }
+            else if (time < 350) { rating = 'iyi gidiyorsun'; color = '#feca57'; }
+            else if (time < 500) { rating = 'idare eder'; color = '#ff9ff3'; }
+            else { rating = 'biraz uyandın mı'; color = '#ff6b6b'; }
             reactionResultValue.style.color = color;
             reactionText.textContent = `${time}ms`;
             reactionSub.textContent = state.reactionRound >= state.reactionMaxRounds
@@ -2304,7 +2304,7 @@ function renderLeaderboard(data, tabType) {
         scoreFormat = (e) => `${e.score} <span>puan</span>`;
     }
 
-    if (entries.length === 0) { leaderboardList.innerHTML = '<div class="lb-empty">Henüz skor yok!</div>'; return; }
+    if (entries.length === 0) { leaderboardList.innerHTML = '<div class="lb-empty">burası daha boş, ilk sen ol</div>'; return; }
     leaderboardList.innerHTML = entries.map((entry, i) => {
         const rank = i + 1;
         const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
@@ -2393,7 +2393,7 @@ submitScoreBtn.addEventListener('click', async () => {
     submitScoreBtn.disabled = true; submitScoreBtn.textContent = 'Gönderiliyor...';
     const success = await submitScore(name, value, mode, type);
     if (success) {
-        submitScoreBtn.textContent = `${label} gönderildi!`;
+        submitScoreBtn.textContent = `${label} kaydedildi`;
         lbTabs.forEach(t => t.classList.toggle('active', t.dataset.type === type));
         state.leaderboardTab = type;
         renderLeaderboard(state.leaderboardData || [], type);
@@ -2456,7 +2456,7 @@ function handleSequenceClick(idx) {
             state.sequenceLevel++;
             sequenceLevelEl.textContent = state.sequenceLevel;
             sequenceLength.textContent = state.sequencePattern.length + 1;
-            sequenceMessage.textContent = 'Harika!';
+            sequenceMessage.textContent = 'evet, devam et';
             state.sequencePattern.push(Math.floor(Math.random() * 9));
             sequenceLength.textContent = state.sequencePattern.length;
             setTimeout(() => showSequence(), 600);
@@ -2506,7 +2506,7 @@ function resetSequence() {
     sequenceLevelEl.textContent = '1';
     sequenceLength.textContent = '3';
     sequenceTiles.forEach(t => t.classList.remove('sequence-active', 'sequence-wrong'));
-    sequenceMessage.innerHTML = 'Sırayı izle ve tekrar et<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
+    sequenceMessage.innerHTML = 'sırayı izle, sonra aynısını yap<br><span style="font-size:0.85rem;color:#f0c040">başlamak için bir bas</span>';
 }
 
 sequenceTiles.forEach((tile, idx) => {
@@ -2805,7 +2805,7 @@ function resetLuck() {
     setLuckHintClass(null);
     luckBarWrap.style.display = 'none';
     luckMessage.style.display = '';
-    luckMessage.innerHTML = 'Çubuğu ortada durdur!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
+    luckMessage.innerHTML = 'çubuğu tam ortada yakala<br><span style="font-size:0.85rem;color:#f0c040">başlamak için bir bas</span>';
     statLuckBest.textContent = state.luckBest || '—';
     statLuckLast.textContent = '—';
 }

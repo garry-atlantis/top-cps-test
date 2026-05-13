@@ -20,7 +20,7 @@
                 <button id="mute-btn" title="Sesi aç/kapat" aria-label="Sesi aç/kapat">Ses</button>
             </div>
             <h1>CPS TEST</h1>
-            <div id="kbd-hint">Boşluk: tıkla · R: sıfırla</div>
+            <div id="kbd-hint">boşluk: tıkla · R: sıfırla</div>
         </header>
 
         <!-- Game Type Selector -->
@@ -50,8 +50,8 @@
             <!-- Click Zone -->
             <div id="click-zone">
                 <div id="click-button">
-                    <span class="click-text">TIKLA!</span>
-                    <span id="click-count" class="click-count">0 tıklama</span>
+                    <span class="click-text">TIKLA</span>
+                    <span id="click-count" class="click-count">henüz hiç basmadın</span>
                 </div>
                 <div id="click-ripple-container"></div>
             </div>
@@ -89,7 +89,7 @@
                 <div id="timer-bar-container">
                     <div id="timer-bar"></div>
                 </div>
-                <div id="timer-text">Başlamak için tıkla!</div>
+                <div id="timer-text">başlamak için bas</div>
             </div>
 
             <!-- Mode Selector -->
@@ -111,8 +111,8 @@
 
             <div id="reaction-zone">
                 <div id="reaction-box">
-                    <span id="reaction-text">Hazır mısın?</span>
-                    <span id="reaction-sub" class="click-count">Kutucuğa tıkla</span>
+                    <span id="reaction-text">hazır mısın</span>
+                    <span id="reaction-sub" class="click-count">kutuya bas, başlasın</span>
                 </div>
             </div>
 
@@ -160,7 +160,7 @@
                 <div class="acc-info-card"><span class="acc-info-label">Süre</span><span id="acc-timer" class="acc-info-value">20</span></div>
             </div>
             <div id="accuracy-zone">
-                <div id="accuracy-message">Başlamak için kutuya tıkla</div>
+                <div id="accuracy-message">kutuya bas, oyun başlasın</div>
                 <div id="accuracy-target"></div>
             </div>
             <div id="accuracy-stats">
@@ -177,8 +177,8 @@
                 <div class="acc-info-card"><span class="acc-info-label">Süre</span><span id="color-timer-val" class="acc-info-value">30</span></div>
             </div>
             <div id="color-display-zone">
-                <div id="color-display-text">Başlamak için tıkla</div>
-                <div id="color-hint">Yazının <b>rengini</b> seç (yazdığını değil!)</div>
+                <div id="color-display-text">başlamak için bas</div>
+                <div id="color-hint">yazının <b>rengini</b> seç (ne yazdığını değil)</div>
             </div>
             <div id="color-buttons">
                 <button class="color-btn" data-color="red" style="--c:#e74c3c">Kırmızı</button>
@@ -212,7 +212,7 @@
                     <div class="sequence-tile" data-idx="7"></div>
                     <div class="sequence-tile" data-idx="8"></div>
                 </div>
-                <div id="sequence-message">Sırayı izle ve tekrar et<br>Başlamak için tıkla</div>
+                <div id="sequence-message">sırayı izle, sonra aynısını yap<br>başlamak için bir bas</div>
             </div>
             <div id="sequence-stats">
                 <div class="stat-card"><div class="stat-info"><span class="stat-label">En İyi</span><span id="stat-sequence-best" class="stat-value">—</span></div></div>
@@ -229,7 +229,7 @@
                 <div class="acc-info-card"><span class="acc-info-label">Combo</span><span id="luck-combo" class="acc-info-value">x1.0</span></div>
             </div>
             <div id="luck-zone">
-                <div id="luck-message">Çubuğu ortada durdur!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span></div>
+                <div id="luck-message">çubuğu tam ortada yakala<br><span style="font-size:0.85rem;color:#f0c040">başlamak için bir bas</span></div>
                 <div id="luck-bar-wrap" style="display:none">
                     <div id="luck-bar-track">
                         <div id="luck-target-zone"></div>
@@ -252,7 +252,7 @@
         <!-- Player Name -->
         <div id="player-name-container">
             <button id="avatar-btn" title="Avatar seç">😎</button>
-            <input type="text" id="player-name-input" placeholder="İsmini yaz..." maxlength="16" value="" readonly>
+            <input type="text" id="player-name-input" placeholder="adın ne" maxlength="16" value="" readonly>
             <button id="change-name-btn" title="İsim değiştir">Düzenle</button>
         </div>
 
@@ -305,8 +305,8 @@
         <!-- Name Confirm Modal -->
         <div id="name-modal">
             <div id="name-modal-box">
-                <p id="name-modal-text">Bu isim <b>değiştirilemez</b>. Emin misin?</p>
-                <input type="text" id="name-modal-input" maxlength="16" placeholder="Yeni isim...">
+                <p id="name-modal-text">bu isim bir kere geçer, <b>değiştirilemez</b>. emin misin?</p>
+                <input type="text" id="name-modal-input" maxlength="16" placeholder="yeni isim">
                 <div id="name-modal-btns">
                     <button id="name-modal-confirm">Onayla</button>
                     <button id="name-modal-cancel">İptal</button>
@@ -318,7 +318,7 @@
         <div id="btn-row">
             <button id="profile-btn">Profilim</button>
             <button id="leaderboard-btn">Sıralama</button>
-            <button id="reset-btn">Sıfırla</button>
+            <button id="reset-btn">sıfırla</button>
         </div>
 
         <!-- Profile Modal -->
@@ -364,9 +364,9 @@
                     <button class="lb-tab" data-type="luck">Şans</button>
                 </div>
                 <div id="leaderboard-list">
-                    <div class="lb-loading">Yükleniyor...</div>
+                    <div class="lb-loading">bir saniye</div>
                 </div>
-                <button id="submit-score-btn">Skorumu Gönder</button>
+                <button id="submit-score-btn">skoru kaydet</button>
             </div>
         </div>
     </div>
@@ -392,7 +392,7 @@
                 <button class="admin-tab" data-type="luck">Şans</button>
             </div>
             <div id="admin-search-row">
-                <input id="admin-search" type="text" placeholder="İsim ara...">
+                <input id="admin-search" type="text" placeholder="isim yaz">
             </div>
             <div id="admin-list"></div>
             <div id="admin-footer">
@@ -472,7 +472,7 @@
                 <div id="owned-titles-list"></div>
                 <div id="custom-title-section" style="display:none">
                     <div class="title-section-label">Özel Title (1. sıraya özel)</div>
-                    <input id="custom-title-input" type="text" maxlength="16" placeholder="Kendi title'ın (max 16)">
+                    <input id="custom-title-input" type="text" maxlength="16" placeholder="kendi title'ın">
                     <div id="custom-title-colors"></div>
                     <button id="custom-title-apply">Özeli Uygula</button>
                 </div>
