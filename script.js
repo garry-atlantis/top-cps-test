@@ -2374,14 +2374,14 @@ submitScoreBtn.addEventListener('click', async () => {
     else if (type === 'luck') { value = state.lastLuckScore; label = 'Şans'; }
 
     if (!value || value <= 0) {
-        submitScoreBtn.textContent = 'Önce test yap!'; submitScoreBtn.style.opacity = '0.6';
-        setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.style.opacity = ''; }, 2500); return;
+        submitScoreBtn.textContent = 'önce bir oyna'; submitScoreBtn.style.opacity = '0.6';
+        setTimeout(() => { submitScoreBtn.textContent = 'skoru kaydet'; submitScoreBtn.style.opacity = ''; }, 2500); return;
     }
     if (!state.registeredName) {
         if (await isNameTaken(name)) {
-            submitScoreBtn.textContent = `"${name}" alınmış!`;
+            submitScoreBtn.textContent = `"${name}" alınmış`;
             submitScoreBtn.style.opacity = '0.6';
-            setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.style.opacity = ''; }, 2500);
+            setTimeout(() => { submitScoreBtn.textContent = 'skoru kaydet'; submitScoreBtn.style.opacity = ''; }, 2500);
             showNotification(`"${name}" ismi alınmış, başka bir isim seç!`, 'warning');
             return;
         }
@@ -2390,15 +2390,15 @@ submitScoreBtn.addEventListener('click', async () => {
         localStorage.setItem('nameChangeUsed', 'true'); changeNameBtn.style.display = 'none';
         updateChangelogVisibility();
     }
-    submitScoreBtn.disabled = true; submitScoreBtn.textContent = 'Gönderiliyor...';
+    submitScoreBtn.disabled = true; submitScoreBtn.textContent = 'bir saniye';
     const success = await submitScore(name, value, mode, type);
     if (success) {
         submitScoreBtn.textContent = `${label} kaydedildi`;
         lbTabs.forEach(t => t.classList.toggle('active', t.dataset.type === type));
         state.leaderboardTab = type;
         renderLeaderboard(state.leaderboardData || [], type);
-        setTimeout(() => { submitScoreBtn.textContent = 'Skorumu Gönder'; submitScoreBtn.disabled = false; }, 2000);
-    } else { submitScoreBtn.textContent = 'Hata! Tekrar Dene'; submitScoreBtn.disabled = false; }
+        setTimeout(() => { submitScoreBtn.textContent = 'skoru kaydet'; submitScoreBtn.disabled = false; }, 2000);
+    } else { submitScoreBtn.textContent = 'olmadı, tekrar dene'; submitScoreBtn.disabled = false; }
 });
 
 // ====== SEQUENCE MEMORY ======
