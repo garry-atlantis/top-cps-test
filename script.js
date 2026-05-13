@@ -924,12 +924,12 @@ const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', 
 // Titles shown under names in the leaderboard for top 5 of each game type.
 // Edit these to set the title text per (gameType, rank). Empty string = no title.
 const LEADERBOARD_TITLES = {
-    cps:      { 1: 'CPS Kralı',       2: 'CPS Ustası',       3: 'CPS Uzmanı',        4: 'CPS Yeteneği',      5: 'CPS Yıldızı' },
-    reaction: { 1: 'Yıldırım',         2: 'Şimşek',           3: 'Hızlı',             4: 'Çevik',             5: 'Yetenekli' },
-    accuracy: { 1: 'Keskin Nişancı',   2: 'Avcı',             3: 'Nişancı',           4: 'Hedefçi',           5: 'Acemi Nişancı' },
-    color:    { 1: 'Renk Ustası',      2: 'Renk Uzmanı',      3: 'Renk Yeteneği',     4: 'Renk Yıldızı',      5: 'Renk Acemisi' },
-    sequence: { 1: 'Hafıza Tanrısı',   2: 'Hafıza Ustası',    3: 'Hafıza Uzmanı',     4: 'Hafıza Yeteneği',   5: 'Hafıza Yıldızı' },
-    luck:     { 1: 'Şanslı',           2: 'Talihli',          3: 'Bahtlı',            4: 'Talih Yıldızı',     5: 'Şans Acemisi' },
+    cps:      { 1: 'TIK ŞEYTANI',      2: 'PARMAK FIRTINASI', 3: 'KLİK USTASI',       4: 'TURBO PARMAK',      5: 'HIZLI ELLER' },
+    reaction: { 1: 'IŞIK HIZI',        2: 'REFLEKS CANAVARI', 3: 'NÖRON',             4: 'ŞAHİN',             5: 'TETİKTE' },
+    accuracy: { 1: 'NİŞAN TANRISI',    2: 'SNIPER ELİT',      3: 'KESKİN GÖZ',        4: 'HEDEF AVCISI',      5: 'SABİT EL' },
+    color:    { 1: 'PRİZMA EFENDİSİ',  2: 'RENK GURUSU',      3: 'SPEKTRUM',          4: 'KROMA USTASI',      5: 'PALET' },
+    sequence: { 1: 'ZİHİN MİMARI',     2: 'HAFIZA CANAVARI',  3: 'ZİNCİR KIRMAYAN',   4: 'FOTO BELLEK',       5: 'HATIRLAYAN' },
+    luck:     { 1: 'KADER EFENDİSİ',   2: 'FORTUNA',          3: 'TALİH KUŞU',        4: 'SOĞUKKANLI',        5: 'ZAMANLAYICI' },
 };
 function getLeaderboardTitle(gameType, rank) {
     return (LEADERBOARD_TITLES[gameType] && LEADERBOARD_TITLES[gameType][rank]) || '';
