@@ -12,12 +12,12 @@
         <!-- Header -->
         <header id="header">
             <div id="header-btns-left">
-                <button id="changelog-btn" title="Güncellemeler" aria-label="Güncellemeler" style="display:none">�</button>
-                <button id="admin-btn" title="Admin Paneli" aria-label="Admin Paneli" style="display:none">⚙️</button>
+                <button id="changelog-btn" title="Güncellemeler" aria-label="Güncellemeler" style="display:none">Log</button>
+                <button id="admin-btn" title="Admin Paneli" aria-label="Admin Paneli" style="display:none">Admin</button>
             </div>
             <div id="header-btns-right">
-                <button id="theme-btn" title="Tema" aria-label="Tema">🎨</button>
-                <button id="mute-btn" title="Sesi aç/kapat" aria-label="Sesi aç/kapat">🔊</button>
+                <button id="theme-btn" title="Tema" aria-label="Tema">Tema</button>
+                <button id="mute-btn" title="Sesi aç/kapat" aria-label="Sesi aç/kapat">Ses</button>
             </div>
             <h1>CPS TEST</h1>
             <div id="kbd-hint">Boşluk: tıkla · R: sıfırla</div>
@@ -226,10 +226,10 @@
             <div id="luck-info">
                 <div class="acc-info-card"><span class="acc-info-label">Seviye</span><span id="luck-level" class="acc-info-value">1</span></div>
                 <div class="acc-info-card"><span class="acc-info-label">Skor</span><span id="luck-score" class="acc-info-value">0</span></div>
-                <div class="acc-info-card"><span class="acc-info-label">Can</span><span id="luck-lives" class="acc-info-value">❤️❤️❤️</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Can</span><span id="luck-lives" class="acc-info-value">3</span></div>
             </div>
             <div id="luck-zone">
-                <div id="luck-message">⚡ Çubuğu ortada durdur!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span></div>
+                <div id="luck-message">Çubuğu ortada durdur!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span></div>
                 <div id="luck-bar-wrap" style="display:none">
                     <div id="luck-zone-indicator"></div>
                     <div id="luck-bar-track">
@@ -259,11 +259,11 @@
         <div id="panic-section" style="display:none">
             <div id="panic-info">
                 <div class="acc-info-card"><span class="acc-info-label">Skor</span><span id="panic-score" class="acc-info-value">0</span></div>
-                <div class="acc-info-card"><span class="acc-info-label">Can</span><span id="panic-lives" class="acc-info-value">❤️❤️❤️❤️❤️</span></div>
+                <div class="acc-info-card"><span class="acc-info-label">Can</span><span id="panic-lives" class="acc-info-value">5</span></div>
                 <div class="acc-info-card"><span class="acc-info-label">Hız</span><span id="panic-speed" class="acc-info-value">x1</span></div>
             </div>
             <div id="panic-zone">
-                <div id="panic-message">😱 Düşen bloğun rengine bas!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span></div>
+                <div id="panic-message">Düşen bloğun rengine bas!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span></div>
                 <div id="panic-arena" style="display:none">
                     <div id="panic-blocks-container"></div>
                 </div>
@@ -285,7 +285,7 @@
         <div id="player-name-container">
             <button id="avatar-btn" title="Avatar seç">😎</button>
             <input type="text" id="player-name-input" placeholder="İsmini yaz..." maxlength="16" value="" readonly>
-            <button id="change-name-btn" title="İsim değiştir">✏️</button>
+            <button id="change-name-btn" title="İsim değiştir">Düzenle</button>
         </div>
 
         <!-- Avatar Picker Modal -->
@@ -293,7 +293,7 @@
             <div id="avatar-box">
                 <div id="avatar-header"><h2>Avatar Seç</h2><button id="avatar-close">×</button></div>
                 <div id="avatar-upload-row">
-                    <button id="avatar-upload-btn">📷 Galeriden Yükle</button>
+                    <button id="avatar-upload-btn">Galeriden Yükle</button>
                     <input type="file" id="avatar-file-input" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
                     <div id="avatar-upload-status"></div>
                 </div>
@@ -311,11 +311,11 @@
                     <div id="crop-frame"></div>
                 </div>
                 <div id="crop-controls">
-                    <span class="crop-zoom-label">🔍</span>
+                    <span class="crop-zoom-label">Zoom</span>
                     <input type="range" id="crop-zoom" min="1" max="3" step="0.01" value="1">
                 </div>
                 <div id="crop-actions">
-                    <button id="crop-apply">✓ Yükle</button>
+                    <button id="crop-apply">Yükle</button>
                 </div>
                 <div id="crop-status"></div>
             </div>
@@ -324,7 +324,7 @@
         <!-- Theme Picker Modal -->
         <div id="theme-modal">
             <div id="theme-box">
-                <div id="theme-header"><h2>🎨 Tema Seç</h2><button id="theme-close">×</button></div>
+                <div id="theme-header"><h2>Tema Seç</h2><button id="theme-close">×</button></div>
                 <div id="theme-grid">
                     <button class="theme-option active" data-theme="dark"><div class="theme-preview" style="background:#1a1f26;border:2px solid #f0c040"></div><span>Karanlık</span></button>
                     <button class="theme-option" data-theme="light"><div class="theme-preview" style="background:#f0f4f8;border:2px solid #e74c3c"></div><span>Aydınlık</span></button>
@@ -340,38 +340,38 @@
                 <p id="name-modal-text">Bu isim <b>değiştirilemez</b>. Emin misin?</p>
                 <input type="text" id="name-modal-input" maxlength="16" placeholder="Yeni isim...">
                 <div id="name-modal-btns">
-                    <button id="name-modal-confirm">✓ Onayla</button>
-                    <button id="name-modal-cancel">✕ İptal</button>
+                    <button id="name-modal-confirm">Onayla</button>
+                    <button id="name-modal-cancel">İptal</button>
                 </div>
             </div>
         </div>
 
         <!-- Buttons Row -->
         <div id="btn-row">
-            <button id="profile-btn">👤 Profilim</button>
-            <button id="leaderboard-btn">🏆 Sıralama</button>
-            <button id="reset-btn">🔄 Sıfırla</button>
+            <button id="profile-btn">Profilim</button>
+            <button id="leaderboard-btn">Sıralama</button>
+            <button id="reset-btn">Sıfırla</button>
         </div>
 
         <!-- Profile Modal -->
         <div id="profile-modal">
             <div id="profile-box">
                 <div id="profile-header">
-                    <h2>👤 Profilim</h2>
+                    <h2>Profilim</h2>
                     <button id="profile-close">×</button>
                 </div>
                 <div id="profile-body">
                     <div id="profile-card">
                         <div id="profile-avatar-wrap">
                             <div id="profile-avatar"></div>
-                            <button id="profile-change-photo-btn" title="Profil fotoğrafı değiştir">📷 Fotoğraf Değiştir</button>
+                            <button id="profile-change-photo-btn" title="Profil fotoğrafı değiştir">Fotoğraf Değiştir</button>
                         </div>
                         <div id="profile-name">—</div>
                         <div id="profile-since"></div>
                     </div>
                     <div id="profile-stats-grid"></div>
                     <div id="profile-records">
-                        <div class="profile-section-title">🏆 Rekorlarım & Sıralamam</div>
+                        <div class="profile-section-title">Rekorlarım & Sıralamam</div>
                         <div id="profile-records-list"></div>
                     </div>
                 </div>
@@ -382,8 +382,8 @@
         <div id="leaderboard-overlay">
             <div id="leaderboard-panel">
                 <div id="leaderboard-header">
-                    <h2>🏆 Sıralama</h2>
-                    <button id="leaderboard-close">✕</button>
+                    <h2>Sıralama</h2>
+                    <button id="leaderboard-close">×</button>
                 </div>
                 <div id="leaderboard-tabs">
                     <button class="lb-tab active" data-type="cps">CPS</button>
@@ -411,7 +411,7 @@
     <div id="admin-modal">
         <div id="admin-box">
             <div id="admin-header">
-                <h2>⚙️ Admin Paneli</h2>
+                <h2>Admin Paneli</h2>
                 <button id="admin-close" aria-label="Kapat">×</button>
             </div>
             <div id="admin-tabs">
@@ -428,7 +428,7 @@
             </div>
             <div id="admin-list"></div>
             <div id="admin-footer">
-                <button id="admin-refresh-btn">🔄 Yenile</button>
+                <button id="admin-refresh-btn">Yenile</button>
             </div>
         </div>
     </div>
@@ -437,55 +437,55 @@
     <div id="changelog-modal">
         <div id="changelog-box">
             <div id="changelog-header">
-                <h2>📋 Güncellemeler</h2>
+                <h2>Güncellemeler</h2>
                 <button id="changelog-close" aria-label="Kapat">×</button>
             </div>
             <div id="changelog-list">
                 <div class="cl-entry">
                     <div class="cl-version">v1.4 <span class="cl-date">3 Mayıs 2026</span></div>
                     <ul>
-                        <li>🎯 <b>Doğruluk Testi</b> eklendi (20sn hedef vurma)</li>
-                        <li>🔢 <b>Sayı Testi</b> eklendi (1-25 sırayla, Schulte 5x5)</li>
-                        <li>🏆 Her oyun için ayrı sıralama sekmesi</li>
-                        <li>⚡ Otomatik skor gönderimi: rekor kırınca direkt sıralamaya</li>
-                        <li>🔒 İsim benzersizliği: her isim 1 kişiye özel</li>
-                        <li>⚙️ Admin paneli (sadece yetkili kullanıcı için)</li>
+                        <li><b>Doğruluk Testi</b> eklendi (20sn hedef vurma)</li>
+                        <li><b>Sayı Testi</b> eklendi (1-25 sırayla, Schulte 5x5)</li>
+                        <li>Her oyun için ayrı sıralama sekmesi</li>
+                        <li>Otomatik skor gönderimi: rekor kırınca direkt sıralamaya</li>
+                        <li>İsim benzersizliği: her isim 1 kişiye özel</li>
+                        <li>Admin paneli (sadece yetkili kullanıcı için)</li>
                     </ul>
                 </div>
                 <div class="cl-entry">
                     <div class="cl-version">v1.3 <span class="cl-date">2 Mayıs 2026</span></div>
                     <ul>
-                        <li>📋 Güncelleme geçmişi eklendi</li>
-                        <li>🔇 Ses açma/kapama butonu</li>
-                        <li>🎯 Reaksiyon testi 5 turluk geçmiş çubukları</li>
-                        <li>🎉 İlk 3 sıraya girince konfeti efekti</li>
-                        <li>🛡️ Uygunsuz isim koruması güçlendirildi</li>
+                        <li>Güncelleme geçmişi eklendi</li>
+                        <li>Ses açma/kapama butonu</li>
+                        <li>Reaksiyon testi 5 turluk geçmiş çubukları</li>
+                        <li>İlk 3 sıraya girince konfeti efekti</li>
+                        <li>Uygunsuz isim koruması güçlendirildi</li>
                     </ul>
                 </div>
                 <div class="cl-entry">
                     <div class="cl-version">v1.2 <span class="cl-date">2 Mayıs 2026</span></div>
                     <ul>
-                        <li>⚡ Reaksiyon süresi testi eklendi</li>
-                        <li>🏆 Sıralama CPS ve Reaksiyon olarak ikiye ayrıldı</li>
-                        <li>📊 CPS sıralamasında her oyuncu tek satırda (en yüksek skoru)</li>
-                        <li>🚫 Uygunsuz isim filtreleme sistemi</li>
+                        <li>Reaksiyon süresi testi eklendi</li>
+                        <li>Sıralama CPS ve Reaksiyon olarak ikiye ayrıldı</li>
+                        <li>CPS sıralamasında her oyuncu tek satırda (en yüksek skoru)</li>
+                        <li>Uygunsuz isim filtreleme sistemi</li>
                     </ul>
                 </div>
                 <div class="cl-entry">
                     <div class="cl-version">v1.1 <span class="cl-date">1 Mayıs 2026</span></div>
                     <ul>
-                        <li>🚀 Yüksek CPS performans iyileştirmeleri</li>
-                        <li>💾 Sıralama hızlı önbellek sistemi</li>
-                        <li>📱 Mobil dokunma desteği geliştirildi</li>
-                        <li>⏱️ Geri sayım ekranı eklendi</li>
+                        <li>Yüksek CPS performans iyileştirmeleri</li>
+                        <li>Sıralama hızlı önbellek sistemi</li>
+                        <li>Mobil dokunma desteği geliştirildi</li>
+                        <li>Geri sayım ekranı eklendi</li>
                     </ul>
                 </div>
                 <div class="cl-entry">
                     <div class="cl-version">v1.0 <span class="cl-date">İlk Sürüm</span></div>
                     <ul>
-                        <li>🎮 CPS testi (1sn, 5sn, 10sn, 30sn modları)</li>
-                        <li>🌐 Online sıralama sistemi</li>
-                        <li>🎨 Karanlık tema</li>
+                        <li>CPS testi (1sn, 5sn, 10sn, 30sn modları)</li>
+                        <li>Online sıralama sistemi</li>
+                        <li>Karanlık tema</li>
                     </ul>
                 </div>
             </div>

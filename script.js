@@ -426,7 +426,7 @@ async function renderAdminList(tabType, search = '') {
                 <span class="admin-row-name">${rank}. ${escapeHtml(e.name)}</span>
                 <span class="admin-row-score">${scoreFmt(e)}</span>
             </div>
-            <button class="admin-delete-btn" data-name="${escapeHtml(e.name)}">🗑 Sil</button>
+            <button class="admin-delete-btn" data-name="${escapeHtml(e.name)}">Sil</button>
         </div>`;
     }).join('');
     adminList.querySelectorAll('.admin-delete-btn').forEach(btn => {
@@ -466,7 +466,7 @@ async function adminDeletePlayer(name, tabType) {
 }
 
 function updateMuteButton() {
-    muteBtn.textContent = state.muted ? '🔇' : '🔊';
+    muteBtn.textContent = state.muted ? 'Ses Kapalı' : 'Ses Açık';
     muteBtn.classList.toggle('muted', state.muted);
 }
 
@@ -851,11 +851,11 @@ function handleReactionClick(e) {
             reactionBox.className = 'reaction-result';
             reactionResultValue.textContent = time;
             let rating, color;
-            if (time < 200) { rating = 'İnanılmaz! ⚡'; color = '#2ecc71'; }
-            else if (time < 250) { rating = 'Çok hızlı! 🔥'; color = '#48dbfb'; }
-            else if (time < 350) { rating = 'İyi! 👍'; color = '#feca57'; }
+            if (time < 200) { rating = 'İnanılmaz!'; color = '#2ecc71'; }
+            else if (time < 250) { rating = 'Çok hızlı!'; color = '#48dbfb'; }
+            else if (time < 350) { rating = 'İyi!'; color = '#feca57'; }
             else if (time < 500) { rating = 'Fena değil'; color = '#ff9ff3'; }
-            else { rating = 'Yavaşlamışsın 🐢'; color = '#ff6b6b'; }
+            else { rating = 'Yavaşlamışsın'; color = '#ff6b6b'; }
             reactionResultValue.style.color = color;
             reactionText.textContent = `${time}ms`;
             reactionSub.textContent = state.reactionRound >= state.reactionMaxRounds
@@ -919,8 +919,7 @@ function showNotification(message, type = 'info', duration = 3000) {
     const container = document.getElementById('notification-stack') || createNotificationStack();
     const notif = document.createElement('div');
     notif.className = `notif notif-${type}`;
-    const icons = { rank: '🏆', success: '✓', warning: '⚠', info: 'ℹ' };
-    notif.innerHTML = `<span class="notif-icon">${icons[type] || icons.info}</span><span class="notif-text">${message}</span><div class="notif-progress"></div>`;
+    notif.innerHTML = `<span class="notif-text">${message}</span><div class="notif-progress"></div>`;
     container.appendChild(notif);
     requestAnimationFrame(() => notif.classList.add('notif-show'));
     const progress = notif.querySelector('.notif-progress');
@@ -944,7 +943,7 @@ const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', 
 
 function showRankNotification(rank, type) {
     const label = TYPE_LABELS[type] || type;
-    const rankText = rank === 1 ? '🥇 1.' : rank === 2 ? '🥈 2.' : rank === 3 ? '🥉 3.' : `${rank}.`;
+    const rankText = `${rank}.`;
     showNotification(`Yeni rekor! ${label} sıralamasında ${rankText} sıradasın!`, 'rank');
     if (rank <= 3) launchConfetti();
 }
@@ -1452,7 +1451,7 @@ async function uploadAvatarToImgBB(file, statusEl) {
             return null;
         }
         statusEl.className = 'success';
-        statusEl.textContent = '✓ Yüklendi!';
+        statusEl.textContent = 'Yüklendi!';
         return json.data.display_url || json.data.url;
     } catch (err) {
         statusEl.className = 'error';
@@ -1520,19 +1519,19 @@ function initAvatar() {
 
 // ====== PROFILE MODAL ======
 const PROFILE_TYPES = [
-    { type: 'cps',      icon: '🖱️', label: 'CPS',      field: 'cps',   higherBetter: true,
+    { type: 'cps',      icon: '', label: 'CPS',      field: 'cps',   higherBetter: true,
       fmt: (e) => `${Math.round(e.cps || 0).toLocaleString()} CPS` },
-    { type: 'reaction', icon: '⚡', label: 'Reaksiyon', field: 'time',  higherBetter: false,
+    { type: 'reaction', icon: '', label: 'Reaksiyon', field: 'time',  higherBetter: false,
       fmt: (e) => `${Math.round(e.time)} ms` },
-    { type: 'accuracy', icon: '🎯', label: 'Doğruluk',  field: 'score', higherBetter: true,
+    { type: 'accuracy', icon: '', label: 'Doğruluk',  field: 'score', higherBetter: true,
       fmt: (e) => `${e.score} vuruş` },
-    { type: 'color',    icon: '🌈', label: 'Renk',      field: 'score', higherBetter: true,
+    { type: 'color',    icon: '', label: 'Renk',      field: 'score', higherBetter: true,
       fmt: (e) => `${e.score} doğru` },
-    { type: 'sequence', icon: '🧠', label: 'Sıra',      field: 'score', higherBetter: true,
+    { type: 'sequence', icon: '', label: 'Sıra',      field: 'score', higherBetter: true,
       fmt: (e) => `${e.score} seviye` },
-    { type: 'luck',     icon: '⚡',  label: 'Şans',      field: 'score', higherBetter: true,
+    { type: 'luck',     icon: '',  label: 'Şans',      field: 'score', higherBetter: true,
       fmt: (e) => `${e.score} puan` },
-    { type: 'panic',    icon: '😱', label: 'Panik',      field: 'score', higherBetter: true,
+    { type: 'panic',    icon: '', label: 'Panik',      field: 'score', higherBetter: true,
       fmt: (e) => `${e.score} blok` },
 ];
 
@@ -1823,7 +1822,7 @@ function initCropModal() {
             const json = await res.json();
             if (!res.ok || !json.success) throw new Error(json.error?.message || 'Yükleme hatası');
             const url = json.data.display_url || json.data.url;
-            status.className = 'success'; status.textContent = '✓ Yüklendi!';
+            status.className = 'success'; status.textContent = 'Yüklendi!';
             setAvatar(url);
             renderAvatarGrid();
             setTimeout(() => {
@@ -2073,14 +2072,13 @@ function renderLeaderboard(data, tabType) {
         scoreFormat = (e) => `${e.score} <span>blok</span>`;
     }
 
-    if (entries.length === 0) { leaderboardList.innerHTML = '<div class="lb-empty">Henüz skor yok! 🎮</div>'; return; }
+    if (entries.length === 0) { leaderboardList.innerHTML = '<div class="lb-empty">Henüz skor yok!</div>'; return; }
     leaderboardList.innerHTML = entries.map((entry, i) => {
         const rank = i + 1;
         const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
         const isSelf = entry.name.toLowerCase() === playerName;
-        const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
         const avatar = avatarHtml(entry.avatar, 'lb-avatar');
-        return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rankEmoji}</div>${avatar}<div class="lb-name">${escapeHtml(entry.name)}</div><div class="lb-score">${scoreFormat(entry)}</div></div>`;
+        return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rank}</div>${avatar}<div class="lb-name">${escapeHtml(entry.name)}</div><div class="lb-score">${scoreFormat(entry)}</div></div>`;
     }).join('');
 }
 
@@ -2149,7 +2147,7 @@ submitScoreBtn.addEventListener('click', async () => {
     submitScoreBtn.disabled = true; submitScoreBtn.textContent = 'Gönderiliyor...';
     const success = await submitScore(name, value, mode, type);
     if (success) {
-        submitScoreBtn.textContent = `✓ ${label} gönderildi!`;
+        submitScoreBtn.textContent = `${label} gönderildi!`;
         lbTabs.forEach(t => t.classList.toggle('active', t.dataset.type === type));
         state.leaderboardTab = type;
         renderLeaderboard(state.leaderboardData || [], type);
@@ -2212,7 +2210,7 @@ function handleSequenceClick(idx) {
             state.sequenceLevel++;
             sequenceLevelEl.textContent = state.sequenceLevel;
             sequenceLength.textContent = state.sequencePattern.length + 1;
-            sequenceMessage.textContent = '✓ Harika!';
+            sequenceMessage.textContent = 'Harika!';
             state.sequencePattern.push(Math.floor(Math.random() * 9));
             sequenceLength.textContent = state.sequencePattern.length;
             setTimeout(() => showSequence(), 600);
@@ -2262,7 +2260,7 @@ function resetSequence() {
     sequenceLevelEl.textContent = '1';
     sequenceLength.textContent = '3';
     sequenceTiles.forEach(t => t.classList.remove('sequence-active', 'sequence-wrong'));
-    sequenceMessage.innerHTML = '🧠 Sırayı izle ve tekrar et<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
+    sequenceMessage.innerHTML = 'Sırayı izle ve tekrar et<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
 }
 
 sequenceTiles.forEach((tile, idx) => {
@@ -2285,7 +2283,7 @@ function getLuckSpeed() {
 }
 
 function updateLuckLives() {
-    luckLivesEl.textContent = '❤️'.repeat(state.luckLives) + '🖤'.repeat(3 - state.luckLives);
+    luckLivesEl.textContent = `${state.luckLives}/3`;
 }
 
 function renderLuckBar() {
@@ -2338,7 +2336,7 @@ function handleLuckTap() {
         state.luckScore += hitScore;
         luckScoreEl.textContent = state.luckScore;
         luckNeedle.style.background = '#2ecc71';
-        luckTapHint.textContent = `+${hitScore} ✓`;
+        luckTapHint.textContent = `+${hitScore}`;
         luckTapHint.style.color = '#2ecc71';
         state.luckLevel++;
         luckLevelEl.textContent = state.luckLevel;
@@ -2357,7 +2355,7 @@ function handleLuckTap() {
         state.luckLives--;
         updateLuckLives();
         luckNeedle.style.background = '#e74c3c';
-        luckTapHint.textContent = '✗ KAÇIRDIN!';
+        luckTapHint.textContent = 'KAÇIRDIN!';
         luckTapHint.style.color = '#e74c3c';
         if (state.luckLives <= 0) {
             setTimeout(() => endLuck(), 200);
@@ -2427,7 +2425,7 @@ function resetLuck() {
     updateLuckLives();
     luckBarWrap.style.display = 'none';
     luckMessage.style.display = '';
-    luckMessage.innerHTML = '⚡ Çubuğu ortada durdur!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
+    luckMessage.innerHTML = 'Çubuğu ortada durdur!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
     statLuckBest.textContent = state.luckBest || '—';
     statLuckLast.textContent = '—';
 }
@@ -2456,7 +2454,7 @@ const PANIC_COLORS = {
 const PANIC_COLOR_KEYS = Object.keys(PANIC_COLORS);
 
 function updatePanicLives() {
-    panicLivesEl.textContent = '❤️'.repeat(state.panicLives) + '🖤'.repeat(state.panicLivesMax - state.panicLives);
+    panicLivesEl.textContent = `${state.panicLives}/${state.panicLivesMax}`;
 }
 
 function spawnPanicBlock() {
@@ -2580,7 +2578,7 @@ function resetPanic() {
     panicSpeedEl.textContent = 'x1';
     updatePanicLives();
     panicMessage.style.display = '';
-    panicMessage.innerHTML = '😱 Düşen bloğun rengine bas!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
+    panicMessage.innerHTML = 'Düşen bloğun rengine bas!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
     panicArena.style.display = 'none';
     panicBtnsEl.style.display = 'none';
     panicBlocksContainer.innerHTML = '';
