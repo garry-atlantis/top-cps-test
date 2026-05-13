@@ -3189,69 +3189,20 @@ body[data-theme="ocean"] #timer-bar.timer-warning { background: linear-gradient(
 #luck-stats { display: flex; gap: 10px; width: 100%; justify-content: center; }
 
 /* ========== DESKTOP (≥900px) ==========
-   Mobile-first sizes preserved; horizontal space used to redistribute
-   stats/labels into side columns around the click area. */
+   Mobile layout preserved and centered. Modals get a bit larger
+   so they're not tiny against a wide viewport. */
 @media (min-width: 900px) {
     #app {
-        max-width: 760px;
-        padding: 36px 28px;
-        gap: 24px;
+        max-width: 560px;
+        padding: 40px 24px;
     }
+    /* Stats panel: 4 cards in one row instead of 2x2 for a tidy desktop row */
+    #stats-panel { grid-template-columns: repeat(4, 1fr); }
 
-    /* CPS section: 3-column grid
-       [ MAKS badge  ]  [ click button (tall) ]  [ AKTIF badge ]
-       [ stat 1       ]  [ ............         ]  [ stat 2      ]
-       [ stat 3       ]  [ ............         ]  [ stat 4      ]
-       [ timer/mode row                                          ] */
-    #cps-section {
-        display: grid;
-        grid-template-columns: 180px 1fr 180px;
-        grid-template-rows: auto auto auto auto auto;
-        column-gap: 18px;
-        row-gap: 12px;
-        align-items: stretch;
-    }
-    /* Hide the original horizontal labels container — we'll place badges directly */
-    #cps-labels { display: contents; }
-    .cps-badge.max-cps     { grid-column: 1; grid-row: 1; align-self: start; }
-    #click-zone            { grid-column: 2; grid-row: 1 / span 3; min-height: 280px; height: 100%; }
-    .cps-badge.current-cps { grid-column: 3; grid-row: 1; align-self: start; }
-    #stats-panel {
-        display: contents;
-    }
-    #stats-panel .stat-card:nth-child(1) { grid-column: 1; grid-row: 2; }
-    #stats-panel .stat-card:nth-child(2) { grid-column: 3; grid-row: 2; }
-    #stats-panel .stat-card:nth-child(3) { grid-column: 1; grid-row: 3; }
-    #stats-panel .stat-card:nth-child(4) { grid-column: 3; grid-row: 3; }
-    #timer-section { grid-column: 1 / -1; grid-row: 4; }
-    #mode-selector { grid-column: 1 / -1; grid-row: 5; justify-content: center; }
-
-    #click-button { height: 100%; min-height: 280px; }
-
-    /* Reaction section: history + stats stay below, just constrain box */
-    #reaction-box { height: 200px; }
-
-    /* Player + buttons compact side-by-side on desktop */
-    #player-name-container { max-width: 540px; }
-    #btn-row { max-width: 540px; }
-
-    /* Modals breathe a bit more */
+    /* Modals breathe more on wide screens */
     #leaderboard-panel { max-width: 620px; }
     #profile-box      { max-width: 560px; }
     #title-picker-box { max-width: 520px; }
     #admin-box, #avatar-box, #theme-box, #changelog-box, #crop-box { max-width: 580px; }
-
-    /* Header h1 slightly larger to balance the wider header */
-    #header h1 { font-size: 1.8rem; }
-    #kbd-hint { font-size: 0.75rem; }
-
-    /* Luck bar wider on desktop */
-    #luck-bar-wrap { max-width: 640px; }
-}
-
-/* ========== EXTRA WIDE (≥1280px) ========== */
-@media (min-width: 1280px) {
-    #app { max-width: 820px; }
-    #cps-section { grid-template-columns: 200px 1fr 200px; }
 }
 
