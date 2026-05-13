@@ -2905,6 +2905,65 @@ luckZoneEl.addEventListener('click', () => {
     handleLuckTap();
 });
 
+// ====== WELCOME MODAL (first-time visitors) ======
+(function setupWelcomeModal() {
+    const modal = document.getElementById('welcome-modal');
+    if (!modal) return;
+    const nameInput = document.getElementById('welcome-name-input');
+    const startBtn = document.getElementById('welcome-start-btn');
+    const skipBtn = document.getElementById('welcome-skip-btn');
+
+    // Show only if user hasn't seen welcome AND hasn't already registered a name
+    const seen = localStorage.getItem('hasSeenWelcome');
+    const hasName = localStorage.getItem('registeredName');
+    if (seen || hasName) return;
+
+    // Slight delay so the page is visible behind the fade-in
+    setTimeout(() => modal.classList.add('open'), 150);
+
+    function dismiss() {
+        modal.classList.remove('open');
+        localStorage.setItem('hasSeenWelcome', '1');
+    }
+
+    function tryStart() {
+        const name = (nameInput.value || '').trim();
+        if (name.length < 2) {
+            nameInput.style.borderColor = '#ff6b6b';
+            nameInput.placeholder = 'en az 2 karakter olsun';
+            nameInput.value = '';
+            setTimeout(() => { nameInput.style.borderColor = ''; nameInput.placeholder = 'adın ne (sonra değiştiremezsin)'; }, 1800);
+            return;
+        }
+        if (typeof isInappropriateName === 'function' && isInappropriateName(name)) {
+            nameInput.style.borderColor = '#ff6b6b';
+            nameInput.value = '';
+            nameInput.placeholder = 'bu isim olmaz, başka dene';
+            setTimeout(() => { nameInput.style.borderColor = ''; nameInput.placeholder = 'adın ne (sonra değiştiremezsin)'; }, 2000);
+            return;
+        }
+        // Lock in the name (same flow as the in-app name field)
+        try {
+            localStorage.setItem('playerName', name);
+            localStorage.setItem('registeredName', name);
+            localStorage.setItem('nameChangeUsed', 'true');
+            state.registeredName = name;
+            state.nameChangeUsed = true;
+            const playerInput = document.getElementById('player-name-input');
+            if (playerInput) { playerInput.value = name; playerInput.readOnly = true; }
+            const changeBtn = document.getElementById('change-name-btn');
+            if (changeBtn) changeBtn.style.display = 'none';
+        } catch (_) {}
+        dismiss();
+    }
+
+    startBtn.addEventListener('click', tryStart);
+    nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryStart(); });
+    skipBtn.addEventListener('click', dismiss);
+    // Auto-focus name input for quick typing
+    setTimeout(() => nameInput.focus(), 600);
+})();
+
 // ====== START ======
 init();
 fetchLeaderboard();
