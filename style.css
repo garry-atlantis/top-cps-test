@@ -288,8 +288,9 @@ body {
 
 #admin-refresh-btn:hover { background: rgba(255,255,255,0.1); }
 
-#admin-list::-webkit-scrollbar { width: 6px; }
-#admin-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+#admin-list::-webkit-scrollbar { width: 8px; }
+#admin-list::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+#admin-list::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 4px; }
 
 
 #changelog-modal {
@@ -406,14 +407,9 @@ body {
     padding: 4px 0;
 }
 
-#changelog-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-#changelog-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-}
+#changelog-list::-webkit-scrollbar { width: 8px; }
+#changelog-list::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+#changelog-list::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 4px; }
 
 #kbd-hint {
     font-size: 0.7rem;
@@ -1074,38 +1070,39 @@ body {
 /* Buttons Row */
 #btn-row {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     padding: 0 4px;
+    width: 100%;
+    max-width: 540px;
+}
+
+#leaderboard-btn,
+#reset-btn,
+#profile-btn {
+    flex: 1;
+    min-width: 0;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.9rem;
+    padding: 12px 10px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #leaderboard-btn {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 800;
-    font-size: 0.9rem;
-    padding: 12px 28px;
-    border: none;
-    border-radius: 12px;
     background: #f0c040;
     color: #1a1a2e;
-    cursor: pointer;
-    transition: background 0.2s ease;
 }
-
-#leaderboard-btn:hover {
-    background: #e0b030;
-}
+#leaderboard-btn:hover { background: #e0b030; }
 
 #reset-btn, #profile-btn {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 800;
-    font-size: 0.9rem;
-    padding: 12px 28px;
-    border: none;
-    border-radius: 12px;
     background: rgba(255, 255, 255, 0.08);
     color: #c0c8d0;
-    cursor: pointer;
-    transition: background 0.2s ease;
 }
 
 #reset-btn:hover, #profile-btn:hover {
@@ -1231,24 +1228,11 @@ body {
     min-height: 200px;
 }
 
-/* Custom Scrollbar */
-#leaderboard-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-#leaderboard-list::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: 3px;
-}
-
-#leaderboard-list::-webkit-scrollbar-thumb {
-    background: rgba(52, 152, 219, 0.3);
-    border-radius: 3px;
-}
-
-#leaderboard-list::-webkit-scrollbar-thumb:hover {
-    background: rgba(52, 152, 219, 0.5);
-}
+/* Custom Scrollbar — uses theme tokens */
+#leaderboard-list::-webkit-scrollbar { width: 8px; }
+#leaderboard-list::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 4px; }
+#leaderboard-list::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+#leaderboard-list::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
 .lb-loading {
     text-align: center;
@@ -2489,6 +2473,51 @@ body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
+}
+
+/* ========== SCROLLBARS (theme-aware) ========== */
+/* Default (dark theme) scrollbar tokens */
+body {
+    --scrollbar-track: rgba(255,255,255,0.05);
+    --scrollbar-thumb: rgba(240,192,64,0.4);
+    --scrollbar-thumb-hover: rgba(240,192,64,0.65);
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+body[data-theme="light"] {
+    --scrollbar-track: rgba(0,0,0,0.05);
+    --scrollbar-thumb: rgba(231,76,60,0.45);
+    --scrollbar-thumb-hover: rgba(231,76,60,0.7);
+}
+body[data-theme="neon"] {
+    --scrollbar-track: rgba(255,0,255,0.06);
+    --scrollbar-thumb: rgba(0,255,255,0.45);
+    --scrollbar-thumb-hover: rgba(0,255,255,0.75);
+}
+body[data-theme="ocean"] {
+    --scrollbar-track: rgba(72,219,251,0.06);
+    --scrollbar-thumb: rgba(72,219,251,0.45);
+    --scrollbar-thumb-hover: rgba(72,219,251,0.75);
+}
+/* WebKit (Chrome/Safari/Edge) */
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+*::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+}
+*::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
 }
 
 /* ========== THEMES ========== */
