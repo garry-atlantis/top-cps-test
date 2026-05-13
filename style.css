@@ -3030,6 +3030,19 @@ body[data-theme="ocean"] #timer-bar.timer-warning { background: linear-gradient(
 }
 .title-color-swatch:hover { transform: scale(1.1); }
 .title-color-swatch.selected { border-color: #fff; }
+.title-color-wheel {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.1s, border-color 0.15s;
+    overflow: hidden;
+    display: inline-block;
+    position: relative;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.25);
+}
+.title-color-wheel:hover { transform: scale(1.1); }
+.title-color-wheel.selected { border-color: #fff; }
 #custom-title-apply {
     background: #f0c040; color: #1a1a2e;
     border: none; border-radius: 8px;

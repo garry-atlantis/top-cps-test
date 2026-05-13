@@ -1854,15 +1854,31 @@ async function openTitlePicker() {
             ? state.selectedTitle.color
             : CUSTOM_TITLE_COLORS[0];
         const renderSwatches = () => {
-            customColors.innerHTML = CUSTOM_TITLE_COLORS.map(c =>
+            const presetIsActive = CUSTOM_TITLE_COLORS.includes(selectedColor);
+            const swatchesHtml = CUSTOM_TITLE_COLORS.map(c =>
                 `<div class="title-color-swatch ${c === selectedColor ? 'selected' : ''}" data-color="${c}" style="background:${c}"></div>`
             ).join('');
+            // Color wheel picker as the last swatch (rainbow gradient = native color picker)
+            const wheelHtml = `
+                <label class="title-color-wheel ${!presetIsActive ? 'selected' : ''}"
+                       style="background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);"
+                       title="Renk çarkı">
+                    <input type="color" id="custom-title-color-input" value="${selectedColor}" style="opacity:0;width:100%;height:100%;cursor:pointer;border:none;padding:0;">
+                </label>`;
+            customColors.innerHTML = swatchesHtml + wheelHtml;
             customColors.querySelectorAll('.title-color-swatch').forEach(s => {
                 s.addEventListener('click', () => {
                     selectedColor = s.dataset.color;
                     renderSwatches();
                 });
             });
+            const colorInput = document.getElementById('custom-title-color-input');
+            if (colorInput) {
+                colorInput.addEventListener('input', (e) => {
+                    selectedColor = e.target.value;
+                    renderSwatches();
+                });
+            }
         };
         renderSwatches();
         customApply.onclick = async () => {
