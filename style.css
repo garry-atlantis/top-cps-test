@@ -1348,6 +1348,36 @@ body {
     white-space: nowrap;
 }
 
+.lb-name-wrap {
+    flex: 1;
+    margin-left: 8px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.lb-name-wrap .lb-name {
+    margin-left: 0;
+    flex: none;
+}
+.lb-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.65rem;
+    color: #f0c040;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.85;
+}
+.lb-row:nth-child(1) .lb-title { color: #f0c040; }
+.lb-row:nth-child(2) .lb-title { color: #c0c0c0; }
+.lb-row:nth-child(3) .lb-title { color: #cd7f32; }
+.lb-row:nth-child(4) .lb-title,
+.lb-row:nth-child(5) .lb-title { color: #48dbfb; }
+
 .lb-score {
     font-family: 'Fredoka One', cursive;
     font-size: 1rem;

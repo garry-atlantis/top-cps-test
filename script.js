@@ -949,6 +949,21 @@ function createNotificationStack() {
 
 const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', color: 'Renk', sequence: 'Sıra', luck: 'Şans', panic: 'Panik' };
 
+// Titles shown under names in the leaderboard for top 5 of each game type.
+// Edit these to set the title text per (gameType, rank). Empty string = no title.
+const LEADERBOARD_TITLES = {
+    cps:      { 1: 'CPS Kralı',       2: 'CPS Ustası',       3: 'CPS Uzmanı',        4: 'CPS Yeteneği',      5: 'CPS Yıldızı' },
+    reaction: { 1: 'Yıldırım',         2: 'Şimşek',           3: 'Hızlı',             4: 'Çevik',             5: 'Yetenekli' },
+    accuracy: { 1: 'Keskin Nişancı',   2: 'Avcı',             3: 'Nişancı',           4: 'Hedefçi',           5: 'Acemi Nişancı' },
+    color:    { 1: 'Renk Ustası',      2: 'Renk Uzmanı',      3: 'Renk Yeteneği',     4: 'Renk Yıldızı',      5: 'Renk Acemisi' },
+    sequence: { 1: 'Hafıza Tanrısı',   2: 'Hafıza Ustası',    3: 'Hafıza Uzmanı',     4: 'Hafıza Yeteneği',   5: 'Hafıza Yıldızı' },
+    luck:     { 1: 'Şanslı',           2: 'Talihli',          3: 'Bahtlı',            4: 'Talih Yıldızı',     5: 'Şans Acemisi' },
+    panic:    { 1: 'Sakin Ruh',        2: 'Soğukkanlı',       3: 'Kontrolcü',         4: 'Tepki Ustası',      5: 'Panik Bilen' },
+};
+function getLeaderboardTitle(gameType, rank) {
+    return (LEADERBOARD_TITLES[gameType] && LEADERBOARD_TITLES[gameType][rank]) || '';
+}
+
 function showRankNotification(rank, type) {
     const label = TYPE_LABELS[type] || type;
     const rankText = `${rank}.`;
@@ -2086,7 +2101,11 @@ function renderLeaderboard(data, tabType) {
         const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
         const isSelf = entry.name.toLowerCase() === playerName;
         const avatar = avatarHtml(entry.avatar, 'lb-avatar');
-        return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rank}</div>${avatar}<div class="lb-name">${escapeHtml(entry.name)}</div><div class="lb-score">${scoreFormat(entry)}</div></div>`;
+        const title = getLeaderboardTitle(tabType, rank);
+        const nameHtml = title
+            ? `<div class="lb-name-wrap"><div class="lb-name">${escapeHtml(entry.name)}</div><div class="lb-title">${escapeHtml(title)}</div></div>`
+            : `<div class="lb-name">${escapeHtml(entry.name)}</div>`;
+        return `<div class="lb-row ${isSelf ? 'lb-self' : ''}"><div class="lb-rank ${rankClass}">${rank}</div>${avatar}${nameHtml}<div class="lb-score">${scoreFormat(entry)}</div></div>`;
     }).join('');
 }
 
