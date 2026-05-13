@@ -31,7 +31,6 @@
             <button class="game-type-btn" data-type="color">Renk</button>
             <button class="game-type-btn" data-type="sequence">Sıra</button>
             <button class="game-type-btn" data-type="luck">Şans</button>
-            <button class="game-type-btn" data-type="panic">Panik</button>
         </div>
 
         <!-- CPS Game Section -->
@@ -250,32 +249,6 @@
             </div>
         </div>
 
-        <!-- Panic Mode Section -->
-        <div id="panic-section" style="display:none">
-            <div id="panic-info">
-                <div class="acc-info-card"><span class="acc-info-label">Skor</span><span id="panic-score" class="acc-info-value">0</span></div>
-                <div class="acc-info-card"><span class="acc-info-label">Can</span><span id="panic-lives" class="acc-info-value">5</span></div>
-                <div class="acc-info-card"><span class="acc-info-label">Hız</span><span id="panic-speed" class="acc-info-value">x1</span></div>
-            </div>
-            <div id="panic-zone">
-                <div id="panic-message">Düşen bloğun rengine bas!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span></div>
-                <div id="panic-arena" style="display:none">
-                    <div id="panic-blocks-container"></div>
-                </div>
-            </div>
-            <div id="panic-btns" style="display:none">
-                <button class="panic-btn" data-color="red" style="--pc:#e74c3c"></button>
-                <button class="panic-btn" data-color="blue" style="--pc:#3498db"></button>
-                <button class="panic-btn" data-color="green" style="--pc:#2ecc71"></button>
-                <button class="panic-btn" data-color="yellow" style="--pc:#f0c040"></button>
-                <button class="panic-btn" data-color="purple" style="--pc:#9b59b6"></button>
-            </div>
-            <div id="panic-stats">
-                <div class="stat-card"><div class="stat-info"><span class="stat-label">En İyi</span><span id="stat-panic-best" class="stat-value">—</span></div></div>
-                <div class="stat-card"><div class="stat-info"><span class="stat-label">Son</span><span id="stat-panic-last" class="stat-value">—</span></div></div>
-            </div>
-        </div>
-
         <!-- Player Name -->
         <div id="player-name-container">
             <button id="avatar-btn" title="Avatar seç">😎</button>
@@ -389,7 +362,6 @@
                     <button class="lb-tab" data-type="color">Renk</button>
                     <button class="lb-tab" data-type="sequence">Sıra</button>
                     <button class="lb-tab" data-type="luck">Şans</button>
-                    <button class="lb-tab" data-type="panic">Panik</button>
                 </div>
                 <div id="leaderboard-list">
                     <div class="lb-loading">Yükleniyor...</div>
@@ -418,7 +390,6 @@
                 <button class="admin-tab" data-type="color">Renk</button>
                 <button class="admin-tab" data-type="sequence">Sıra</button>
                 <button class="admin-tab" data-type="luck">Şans</button>
-                <button class="admin-tab" data-type="panic">Panik</button>
             </div>
             <div id="admin-search-row">
                 <input id="admin-search" type="text" placeholder="İsim ara...">

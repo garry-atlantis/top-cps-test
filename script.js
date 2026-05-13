@@ -76,12 +76,6 @@ const state = {
     luckPerfects: 0, luckGreats: 0, luckGoods: 0, luckMisses: 0,
     luckBest: parseInt(localStorage.getItem('luckBest')) || 0,
     lastLuckScore: 0,
-    // Panic Mode
-    panicState: 'idle', panicScore: 0, panicLives: 3,
-    panicBlocks: [], panicSpeed: 1, panicInterval: null, panicAnimId: null,
-    panicLivesMax: 5,
-    panicBest: parseInt(localStorage.getItem('panicBest')) || 0,
-    lastPanicScore: 0,
     // UI prefs
     avatar: localStorage.getItem('avatar') || '',
     theme: localStorage.getItem('theme') || 'dark',
@@ -173,19 +167,6 @@ const luckParticles = document.getElementById('luck-particles');
 const luckComboPopup = document.getElementById('luck-combo-popup');
 const statLuckBest = document.getElementById('stat-luck-best');
 const statLuckLast = document.getElementById('stat-luck-last');
-
-// Panic Mode
-const panicSection = document.getElementById('panic-section');
-const panicMessage = document.getElementById('panic-message');
-const panicArena = document.getElementById('panic-arena');
-const panicBtnsEl = document.getElementById('panic-btns');
-const panicBlocksContainer = document.getElementById('panic-blocks-container');
-const panicScoreEl = document.getElementById('panic-score');
-const panicLivesEl = document.getElementById('panic-lives');
-const panicSpeedEl = document.getElementById('panic-speed');
-const panicBtns = document.querySelectorAll('.panic-btn');
-const statPanicBest = document.getElementById('stat-panic-best');
-const statPanicLast = document.getElementById('stat-panic-last');
 
 // Sequence Memory
 const sequenceSection = document.getElementById('sequence-section');
@@ -373,7 +354,7 @@ function initAdminPanel() {
     });
 }
 
-const ADMIN_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', color: 'Renk', sequence: 'Sıra', luck: 'Şans', panic: 'Panik' };
+const ADMIN_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', color: 'Renk', sequence: 'Sıra', luck: 'Şans' };
 
 async function renderAdminList(tabType, search = '') {
     const adminList = document.getElementById('admin-list');
@@ -418,12 +399,6 @@ async function renderAdminList(tabType, search = '') {
         l.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.score > best[k].score) best[k] = e; });
         entries = Object.values(best).sort((a, b) => b.score - a.score);
         scoreFmt = (e) => `${e.score} puan`;
-    } else if (tabType === 'panic') {
-        const p = data.filter(e => e.type === 'panic' && typeof e.score === 'number');
-        const best = {};
-        p.forEach(e => { const k = e.name.toLowerCase(); if (!best[k] || e.score > best[k].score) best[k] = e; });
-        entries = Object.values(best).sort((a, b) => b.score - a.score);
-        scoreFmt = (e) => `${e.score} blok`;
     }
 
     if (search) entries = entries.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
@@ -527,7 +502,6 @@ const GAME_TITLES = {
     color: 'RENK TESTİ',
     sequence: 'SIRA HAFIZASI',
     luck: 'ŞANS TESTİ',
-    panic: 'PANİK MODU',
 };
 
 // Global touch-scroll guard: prevents buttons from firing during scroll
@@ -538,7 +512,7 @@ document.addEventListener('touchmove', () => { _touchScrolling = true; }, { pass
 gameTypeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         if (_touchScrolling) return;
-        if (state.isRunning || state.isCountdown || state.accuracyState === 'running' || state.colorState === 'running' || state.sequenceState === 'running' || state.sequenceShowing || state.luckState === 'running' || state.panicState === 'running') return;
+        if (state.isRunning || state.isCountdown || state.accuracyState === 'running' || state.colorState === 'running' || state.sequenceState === 'running' || state.sequenceShowing || state.luckState === 'running') return;
         gameTypeBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         state.gameType = btn.dataset.type;
@@ -550,7 +524,6 @@ gameTypeBtns.forEach(btn => {
         colorSection.style.display = 'none';
         sequenceSection.style.display = 'none';
         luckSection.style.display = 'none';
-        panicSection.style.display = 'none';
 
         // Reset other modes' last scores so submit picks correct one
         state.lastSessionCps = 0;
@@ -559,7 +532,6 @@ gameTypeBtns.forEach(btn => {
         state.lastColorScore = 0;
         state.lastSequenceScore = 0;
         state.lastLuckScore = 0;
-        state.lastPanicScore = 0;
 
         document.querySelector('#header h1').textContent = GAME_TITLES[state.gameType];
 
@@ -580,9 +552,6 @@ gameTypeBtns.forEach(btn => {
         } else if (state.gameType === 'luck') {
             luckSection.style.display = '';
             resetLuck();
-        } else if (state.gameType === 'panic') {
-            panicSection.style.display = '';
-            resetPanic();
         }
     });
 });
@@ -726,7 +695,6 @@ const AUTO_SUBMIT_CONFIG = {
     color:    { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'color' },
     sequence: { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'sequence' },
     luck:     { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'luck' },
-    panic:    { field: 'score', higherBetter: true,  matchType: (e) => e.type === 'panic' },
 };
 
 async function autoSubmitIfBest(type, value, mode = null) {
@@ -951,7 +919,7 @@ function createNotificationStack() {
     return c;
 }
 
-const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', color: 'Renk', sequence: 'Sıra', luck: 'Şans', panic: 'Panik' };
+const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', color: 'Renk', sequence: 'Sıra', luck: 'Şans' };
 
 // Titles shown under names in the leaderboard for top 5 of each game type.
 // Edit these to set the title text per (gameType, rank). Empty string = no title.
@@ -962,7 +930,6 @@ const LEADERBOARD_TITLES = {
     color:    { 1: 'Renk Ustası',      2: 'Renk Uzmanı',      3: 'Renk Yeteneği',     4: 'Renk Yıldızı',      5: 'Renk Acemisi' },
     sequence: { 1: 'Hafıza Tanrısı',   2: 'Hafıza Ustası',    3: 'Hafıza Uzmanı',     4: 'Hafıza Yeteneği',   5: 'Hafıza Yıldızı' },
     luck:     { 1: 'Şanslı',           2: 'Talihli',          3: 'Bahtlı',            4: 'Talih Yıldızı',     5: 'Şans Acemisi' },
-    panic:    { 1: 'Sakin Ruh',        2: 'Soğukkanlı',       3: 'Kontrolcü',         4: 'Tepki Ustası',      5: 'Panik Bilen' },
 };
 function getLeaderboardTitle(gameType, rank) {
     return (LEADERBOARD_TITLES[gameType] && LEADERBOARD_TITLES[gameType][rank]) || '';
@@ -1652,8 +1619,6 @@ const PROFILE_TYPES = [
       fmt: (e) => `${e.score} seviye` },
     { type: 'luck',     icon: '',  label: 'Şans',      field: 'score', higherBetter: true,
       fmt: (e) => `${e.score} puan` },
-    { type: 'panic',    icon: '', label: 'Panik',      field: 'score', higherBetter: true,
-      fmt: (e) => `${e.score} blok` },
 ];
 
 function getBestPerPlayer(entries, field, higherBetter) {
@@ -2105,7 +2070,6 @@ function resetCurrentGame() {
     else if (state.gameType === 'color') resetColorTest();
     else if (state.gameType === 'sequence') resetSequence();
     else if (state.gameType === 'luck') resetLuck();
-    else if (state.gameType === 'panic') resetPanic();
 }
 
 document.addEventListener('keydown', (e) => {
@@ -2164,7 +2128,7 @@ async function submitScore(name, value, mode, type) {
     if (state.avatar) entry.avatar = state.avatar;
     if (state.selectedTitle && state.selectedTitle.text) entry.title = { text: state.selectedTitle.text, color: state.selectedTitle.color };
     if (type === 'cps') { entry.cps = value; entry.mode = mode; }
-    else if (type === 'accuracy' || type === 'color' || type === 'sequence' || type === 'luck' || type === 'panic') { entry.score = value; }
+    else if (type === 'accuracy' || type === 'color' || type === 'sequence' || type === 'luck') { entry.score = value; }
     else { entry.time = value; }  // reaction
     if (!isJsonBinConfigured()) {
         const data = getLocalLeaderboard();
@@ -2204,7 +2168,7 @@ function trimLeaderboard(data) {
     result.push(...Object.values(cpsBest));
 
     // Other types: keep best per player
-    ['reaction', 'accuracy', 'color', 'sequence', 'luck', 'panic'].forEach(type => {
+    ['reaction', 'accuracy', 'color', 'sequence', 'luck'].forEach(type => {
         const entries = data.filter(e => e.type === type);
         const best = {};
         entries.forEach(e => {
@@ -2243,7 +2207,7 @@ function upsertScore(data, entry, type) {
         const idx = data.findIndex(e => e.type === 'color' && e.name.toLowerCase() === lname);
         if (idx >= 0) { if ((entry.score || 0) > (data[idx].score || 0)) { data[idx].score = entry.score; data[idx].date = entry.date; } }
         else data.push(entry);
-    } else if (type === 'sequence' || type === 'luck' || type === 'panic') {
+    } else if (type === 'sequence' || type === 'luck') {
         const idx = data.findIndex(e => e.type === type && e.name.toLowerCase() === lname);
         if (idx >= 0) { if ((entry.score || 0) > (data[idx].score || 0)) { data[idx].score = entry.score; data[idx].date = entry.date; } }
         else data.push(entry);
@@ -2322,15 +2286,6 @@ function renderLeaderboard(data, tabType) {
         });
         entries = Object.values(bestPerPlayer).sort((a, b) => b.score - a.score);
         scoreFormat = (e) => `${e.score} <span>puan</span>`;
-    } else if (tabType === 'panic') {
-        const p = data.filter(e => e.type === 'panic' && typeof e.score === 'number');
-        const bestPerPlayer = {};
-        p.forEach(e => {
-            const key = e.name.toLowerCase();
-            if (!bestPerPlayer[key] || e.score > bestPerPlayer[key].score) bestPerPlayer[key] = e;
-        });
-        entries = Object.values(bestPerPlayer).sort((a, b) => b.score - a.score);
-        scoreFormat = (e) => `${e.score} <span>blok</span>`;
     }
 
     if (entries.length === 0) { leaderboardList.innerHTML = '<div class="lb-empty">Henüz skor yok!</div>'; return; }
@@ -2401,7 +2356,6 @@ submitScoreBtn.addEventListener('click', async () => {
     else if (type === 'color') { value = state.lastColorScore; label = 'Renk'; }
     else if (type === 'sequence') { value = state.lastSequenceScore; label = 'Sıra'; }
     else if (type === 'luck') { value = state.lastLuckScore; label = 'Şans'; }
-    else if (type === 'panic') { value = state.lastPanicScore; label = 'Panik'; }
 
     if (!value || value <= 0) {
         submitScoreBtn.textContent = 'Önce test yap!'; submitScoreBtn.style.opacity = '0.6';
@@ -2851,162 +2805,6 @@ luckZoneEl.addEventListener('touchstart', (e) => {
 luckZoneEl.addEventListener('click', () => {
     if (_luckTouchFired) { _luckTouchFired = false; return; }
     handleLuckTap();
-});
-
-// ====== PANIC MODE ======
-const PANIC_COLORS = {
-    red:    '#e74c3c',
-    blue:   '#3498db',
-    green:  '#2ecc71',
-    yellow: '#f0c040',
-    purple: '#9b59b6',
-};
-const PANIC_COLOR_KEYS = Object.keys(PANIC_COLORS);
-
-function updatePanicLives() {
-    panicLivesEl.textContent = `${state.panicLives}/${state.panicLivesMax}`;
-}
-
-function spawnPanicBlock() {
-    if (state.panicState !== 'running') return;
-    const colorKey = PANIC_COLOR_KEYS[Math.floor(Math.random() * PANIC_COLOR_KEYS.length)];
-    const block = document.createElement('div');
-    block.className = 'panic-block';
-    block.style.background = PANIC_COLORS[colorKey];
-    block.dataset.color = colorKey;
-    // Random horizontal position (symmetric, blocks stay in bounds)
-    const leftPct = 10 + Math.random() * 80;
-    block.style.left = `${leftPct}%`;
-    block.style.top = '0%';
-    panicBlocksContainer.appendChild(block);
-    state.panicBlocks.push({ el: block, color: colorKey, pos: 0 });
-}
-
-function animatePanic() {
-    if (state.panicState !== 'running') return;
-    const arenaH = panicArena.clientHeight || 260;
-    const speed = 1.8 * state.panicSpeed;
-
-    for (let i = state.panicBlocks.length - 1; i >= 0; i--) {
-        const b = state.panicBlocks[i];
-        b.pos += speed;
-        b.el.style.top = `${(b.pos / arenaH) * 100}%`;
-        if (b.pos >= arenaH - 10) {
-            // Missed
-            b.el.remove();
-            state.panicBlocks.splice(i, 1);
-            state.panicLives--;
-            updatePanicLives();
-            if (state.panicLives <= 0) { endPanic(); return; }
-        }
-    }
-    state.panicAnimId = requestAnimationFrame(animatePanic);
-}
-
-function handlePanicBtn(colorKey) {
-    if (state.panicState !== 'running') return;
-    // Find the lowest block of matching color
-    let hit = null;
-    let maxPos = -1;
-    for (const b of state.panicBlocks) {
-        if (b.color === colorKey && b.pos > maxPos) { hit = b; maxPos = b.pos; }
-    }
-    if (hit) {
-        hit.el.classList.add('panic-hit');
-        setTimeout(() => hit.el.remove(), 150);
-        state.panicBlocks = state.panicBlocks.filter(b => b !== hit);
-        state.panicScore++;
-        panicScoreEl.textContent = state.panicScore;
-        // Speed up with every block
-        state.panicSpeed = 1 + Math.max(0, state.panicScore - 5) * 0.04;
-        panicSpeedEl.textContent = `x${state.panicSpeed.toFixed(1)}`;
-        playClickSound();
-    } else {
-        // Wrong color tap — flash button
-        const btn = [...panicBtns].find(b => b.dataset.color === colorKey);
-        if (btn) { btn.classList.add('panic-btn-wrong'); setTimeout(() => btn.classList.remove('panic-btn-wrong'), 300); }
-    }
-}
-
-function startPanic() {
-    state.panicState = 'running';
-    state.panicScore = 0;
-    state.panicLives = state.panicLivesMax;
-    state.panicBlocks = [];
-    state.panicSpeed = 1;
-    panicScoreEl.textContent = '0';
-    panicSpeedEl.textContent = 'x1';
-    updatePanicLives();
-    panicMessage.style.display = 'none';
-    panicArena.style.display = '';
-    panicBtnsEl.style.display = '';
-    panicBlocksContainer.innerHTML = '';
-    // Spawn blocks at interval — restarts interval as speed increases
-    spawnPanicBlock();
-    const scheduleSpawn = () => {
-        if (state.panicState !== 'running') return;
-        const interval = Math.max(600, 1400 - state.panicScore * 8);
-        state.panicInterval = setTimeout(() => {
-            spawnPanicBlock();
-            scheduleSpawn();
-        }, interval);
-    };
-    scheduleSpawn();
-    animatePanic();
-}
-
-function endPanic() {
-    cancelAnimationFrame(state.panicAnimId);
-    clearTimeout(state.panicInterval);
-    state.panicState = 'ended';
-    panicArena.style.display = 'none';
-    panicBtnsEl.style.display = 'none';
-    panicMessage.style.display = '';
-    panicMessage.innerHTML = `<span class="game-result-big">${state.panicScore}</span><span class="game-result-label">Blok · Tekrar için tıkla</span>`;
-    state.lastPanicScore = state.panicScore;
-    statPanicLast.textContent = state.panicScore;
-    if (state.panicScore > state.panicBest) {
-        state.panicBest = state.panicScore;
-        localStorage.setItem('panicBest', state.panicScore);
-        statPanicBest.textContent = state.panicScore;
-    }
-    playEndSound();
-    autoSubmitIfBest('panic', state.panicScore);
-}
-
-function resetPanic() {
-    cancelAnimationFrame(state.panicAnimId);
-    clearTimeout(state.panicInterval);
-    state.panicState = 'idle';
-    state.panicScore = 0;
-    state.panicLives = state.panicLivesMax;
-    state.panicBlocks = [];
-    state.panicSpeed = 1;
-    state.panicAnimId = null;
-    state.panicInterval = null;
-    panicScoreEl.textContent = '0';
-    panicSpeedEl.textContent = 'x1';
-    updatePanicLives();
-    panicMessage.style.display = '';
-    panicMessage.innerHTML = 'Düşen bloğun rengine bas!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';
-    panicArena.style.display = 'none';
-    panicBtnsEl.style.display = 'none';
-    panicBlocksContainer.innerHTML = '';
-    statPanicBest.textContent = state.panicBest || '—';
-    statPanicLast.textContent = '—';
-}
-
-const _startPanicIfIdle = (e) => {
-    if (e && e.cancelable) e.preventDefault();
-    if (state.panicState === 'idle' || state.panicState === 'ended') startPanic();
-};
-panicMessage.addEventListener('click', _startPanicIfIdle);
-panicMessage.addEventListener('touchstart', _startPanicIfIdle, { passive: false });
-
-panicBtns.forEach(btn => {
-    const tap = (e) => { e.preventDefault(); handlePanicBtn(btn.dataset.color); };
-    btn.addEventListener('click', tap);
-    btn.addEventListener('touchstart', tap, { passive: false });
 });
 
 // ====== START ======
