@@ -924,12 +924,12 @@ const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', 
 // Titles shown under names in the leaderboard for top 5 of each game type.
 // Edit these to set the title text per (gameType, rank). Empty string = no title.
 const LEADERBOARD_TITLES = {
-    cps:      { 1: 'HERMES',           2: 'OVERDRIVE',        3: 'SİNAPS',            4: 'KLİK ŞEYTANI',      5: 'FRAGMAN' },
-    reaction: { 1: 'ZEUS',             2: 'NÖRO ŞOK',         3: 'PULSE',             4: 'ŞOK DALGASI',       5: 'ANINDA' },
-    accuracy: { 1: 'ARTEMIS',          2: 'SNIPER',           3: 'VEKTÖR',            4: 'DELTA',             5: 'AXIOM' },
-    color:    { 1: 'IRIS',             2: 'PRİZMA ZİHİN',     3: 'SPEKTRUM',          4: 'KROMATİK',          5: 'RENK ŞEYTANI' },
-    sequence: { 1: 'MNEMOSYNE',        2: 'ZİHİN ARŞİVİ',     3: 'NÖRON AĞI',         4: 'KÜTÜPHANE',         5: 'HAFIZA CANAVARI' },
-    luck:     { 1: 'TYKHE',            2: 'ENTROPİ',          3: 'STOKASTİK',         4: 'KADERİN GÖZDESİ',   5: 'OLASILIK' },
+    cps:      { 1: 'HERMES',           2: 'KİNETİK NABIZ',    3: 'SİNAPS',            4: 'MOMENTUM',          5: 'OVERDRIVE' },
+    reaction: { 1: 'ZEUS',             2: 'NÖRO ŞOK',         3: 'PULSE',             4: 'ŞOK DALGASI',       5: 'REFLEKS AĞI' },
+    accuracy: { 1: 'ARTEMIS',          2: 'VEKTÖR',           3: 'AXIOM',             4: 'DELTA',             5: 'SNIPER' },
+    color:    { 1: 'IRIS',             2: 'PRİZMA ZİHİN',     3: 'KROMATİK',          4: 'SPEKTRUM',          5: 'OPTİK ZİHİN' },
+    sequence: { 1: 'MNEMOSYNE',        2: 'ZİHİN ARŞİVİ',     3: 'NÖRON AĞI',         4: 'BELLEK MATRİSİ',    5: 'HAFIZA KÜRESİ' },
+    luck:     { 1: 'TYKHE',            2: 'ENTROPİ',          3: 'STOKASTİK',         4: 'KAOS PROTOKOLÜ',    5: 'KADERİN GÖZDESİ' },
 };
 function getLeaderboardTitle(gameType, rank) {
     return (LEADERBOARD_TITLES[gameType] && LEADERBOARD_TITLES[gameType][rank]) || '';
