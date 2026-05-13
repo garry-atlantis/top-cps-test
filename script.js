@@ -924,12 +924,12 @@ const TYPE_LABELS = { cps: 'CPS', reaction: 'Reaksiyon', accuracy: 'Doğruluk', 
 // Titles shown under names in the leaderboard for top 5 of each game type.
 // Edit these to set the title text per (gameType, rank). Empty string = no title.
 const LEADERBOARD_TITLES = {
-    cps:      { 1: 'HERMES',           2: 'KİNETİK NABIZ',    3: 'SİNAPS',            4: 'MOMENTUM',          5: 'OVERDRIVE' },
-    reaction: { 1: 'ZEUS',             2: 'NÖRO ŞOK',         3: 'PULSE',             4: 'ŞOK DALGASI',       5: 'REFLEKS AĞI' },
-    accuracy: { 1: 'ARTEMIS',          2: 'VEKTÖR',           3: 'AXIOM',             4: 'DELTA',             5: 'SNIPER' },
+    cps:      { 1: 'HERMES',           2: 'KİNETİK NABIZ',    3: 'HİPER KLİK',        4: 'ADRENALİN',         5: 'PARMAK ENERJİSİ' },
+    reaction: { 1: 'ZEUS',             2: 'NÖRO ŞOK',         3: 'HİPER REFLEKS',     4: 'ŞOK DALGASI',       5: 'REFLEKS AĞI' },
+    accuracy: { 1: 'ARTEMIS',          2: 'SNIPER ELİT',      3: 'NİŞAN HATTI',       4: 'HEDEF KİLİDİ',      5: 'KESKİN AÇI' },
     color:    { 1: 'IRIS',             2: 'PRİZMA ZİHİN',     3: 'KROMATİK',          4: 'SPEKTRUM',          5: 'OPTİK ZİHİN' },
     sequence: { 1: 'MNEMOSYNE',        2: 'ZİHİN ARŞİVİ',     3: 'NÖRON AĞI',         4: 'BELLEK MATRİSİ',    5: 'HAFIZA KÜRESİ' },
-    luck:     { 1: 'TYKHE',            2: 'ENTROPİ',          3: 'STOKASTİK',         4: 'KAOS PROTOKOLÜ',    5: 'KADERİN GÖZDESİ' },
+    luck:     { 1: 'TYKHE',            2: 'KAOS PROTOKOLÜ',   3: 'ŞANS FAKTÖRÜ',      4: 'KADERİN GÖZDESİ',   5: 'RİSK MATRİSİ' },
 };
 function getLeaderboardTitle(gameType, rank) {
     return (LEADERBOARD_TITLES[gameType] && LEADERBOARD_TITLES[gameType][rank]) || '';
