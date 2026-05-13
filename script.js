@@ -70,7 +70,10 @@ const state = {
     lastSequenceScore: 0,
     // Luck Test
     luckState: 'idle', luckLevel: 1, luckScore: 0, luckLives: 3,
+    luckLivesMax: 5, luckLivesStart: 3,
     luckNeedlePos: 0, luckNeedleDir: 1, luckAnimId: null,
+    luckCombo: 0, luckMaxCombo: 0,
+    luckPerfects: 0, luckGreats: 0, luckGoods: 0, luckMisses: 0,
     luckBest: parseInt(localStorage.getItem('luckBest')) || 0,
     lastLuckScore: 0,
     // Panic Mode
@@ -155,10 +158,15 @@ const luckMessage = document.getElementById('luck-message');
 const luckBarWrap = document.getElementById('luck-bar-wrap');
 const luckNeedle = document.getElementById('luck-needle');
 const luckTargetZone = document.getElementById('luck-target-zone');
+const luckGreatZone = document.getElementById('luck-great-zone');
+const luckPerfectZone = document.getElementById('luck-perfect-zone');
 const luckTapHint = document.getElementById('luck-tap-hint');
 const luckLevelEl = document.getElementById('luck-level');
 const luckScoreEl = document.getElementById('luck-score');
 const luckLivesEl = document.getElementById('luck-lives');
+const luckComboEl = document.getElementById('luck-combo');
+const luckParticles = document.getElementById('luck-particles');
+const luckComboPopup = document.getElementById('luck-combo-popup');
 const statLuckBest = document.getElementById('stat-luck-best');
 const statLuckLast = document.getElementById('stat-luck-last');
 
@@ -2270,20 +2278,38 @@ sequenceTiles.forEach((tile, idx) => {
 sequenceMessage.addEventListener('click', () => { if (state.sequenceState === 'idle' || state.sequenceState === 'ended') startSequence(); });
 
 // ====== LUCK TEST ======
-const LUCK_COLORS = ['#2ecc71', '#f0c040', '#e74c3c'];
+// Tier system: target zone has nested PERFECT (center 1/4) and GREAT (center 1/2) sub-zones.
+// Score = baseTier * levelMult * comboMult.
+// Combo resets on miss. Every 10 perfects → +1 life (max 5).
 
 function getLuckTargetWidth() {
-    // Target zone shrinks per level: 40% → min 8%
-    return Math.max(8, 40 - (state.luckLevel - 1) * 3);
+    // Slower shrink so progression feels rewarding longer: 50% → min 10%
+    return Math.max(10, 50 - (state.luckLevel - 1) * 2.5);
 }
 
 function getLuckSpeed() {
-    // % per millisecond — increases per level
-    return 0.04 + (state.luckLevel - 1) * 0.008;
+    // % per millisecond — base + level scaling, with combo-flow bonus capped
+    return 0.045 + (state.luckLevel - 1) * 0.007;
+}
+
+function getLuckLevelMult() {
+    // Caps at 10x so insane levels don't snowball
+    return Math.min(10, state.luckLevel);
+}
+
+function getLuckComboMult() {
+    // 0 streak → x1.0, 20 streak → x3.0
+    return Math.min(3, 1 + state.luckCombo * 0.1);
 }
 
 function updateLuckLives() {
-    luckLivesEl.textContent = `${state.luckLives}/3`;
+    luckLivesEl.textContent = `${state.luckLives}/${state.luckLivesMax}`;
+}
+
+function updateLuckCombo() {
+    const mult = getLuckComboMult();
+    luckComboEl.textContent = `x${mult.toFixed(1)}`;
+    luckComboEl.style.color = mult >= 2.5 ? '#2ecc71' : mult >= 1.8 ? '#48dbfb' : mult >= 1.3 ? '#f0c040' : '#c0c8d0';
 }
 
 function renderLuckBar() {
@@ -2291,10 +2317,16 @@ function renderLuckBar() {
     const targetLeft = (100 - targetW) / 2;
     luckTargetZone.style.left = `${targetLeft}%`;
     luckTargetZone.style.width = `${targetW}%`;
-    // Color: green if wide, yellow if medium, red if narrow
-    const color = targetW > 25 ? '#2ecc71' : targetW > 14 ? '#f0c040' : '#e74c3c';
-    luckTargetZone.style.background = `rgba(${color === '#2ecc71' ? '46,204,113' : color === '#f0c040' ? '240,192,64' : '231,76,60'}, 0.35)`;
-    luckTargetZone.style.borderColor = color;
+
+    // GREAT zone is the inner half of target
+    const greatW = targetW * 0.5;
+    luckGreatZone.style.left = `${(100 - greatW) / 2}%`;
+    luckGreatZone.style.width = `${greatW}%`;
+
+    // PERFECT zone is the inner quarter of target
+    const perfectW = targetW * 0.25;
+    luckPerfectZone.style.left = `${(100 - perfectW) / 2}%`;
+    luckPerfectZone.style.width = `${perfectW}%`;
 }
 
 let _luckLastTime = 0;
@@ -2308,68 +2340,147 @@ function animateLuck(ts) {
     state.luckNeedlePos += state.luckNeedleDir * speed * dt;
     if (state.luckNeedlePos >= 100) { state.luckNeedlePos = 100; state.luckNeedleDir = -1; }
     if (state.luckNeedlePos <= 0)   { state.luckNeedlePos = 0;   state.luckNeedleDir = 1; }
-    const px = (state.luckNeedlePos / 100) * _luckTrackW - 2;
+    const px = (state.luckNeedlePos / 100) * _luckTrackW - 3;
     luckNeedle.style.transform = `translateX(${px}px)`;
     state.luckAnimId = requestAnimationFrame(animateLuck);
+}
+
+function spawnLuckParticles(color, count) {
+    if (!luckParticles) return;
+    const px = (state.luckNeedlePos / 100) * (_luckTrackW || luckNeedle.parentElement.offsetWidth || 340);
+    for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'luck-particle';
+        p.style.background = color;
+        p.style.left = `${px}px`;
+        p.style.top = '50%';
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 40 + Math.random() * 60;
+        p.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+        p.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);
+        luckParticles.appendChild(p);
+        setTimeout(() => p.remove(), 700);
+    }
+}
+
+function showLuckCombo(text, color) {
+    luckComboPopup.textContent = text;
+    luckComboPopup.style.color = color;
+    luckComboPopup.classList.remove('combo-show');
+    void luckComboPopup.offsetWidth; // reflow to restart animation
+    luckComboPopup.classList.add('combo-show');
+}
+
+function setLuckHintClass(cls) {
+    luckTapHint.className = '';
+    if (cls) luckTapHint.classList.add(cls);
+}
+
+function setNeedleClass(cls) {
+    luckNeedle.className = '';
+    if (cls) luckNeedle.classList.add(cls);
 }
 
 function handleLuckTap() {
     if (state.luckState === 'idle' || state.luckState === 'ended') { startLuck(); return; }
     if (state.luckState !== 'running') return;
 
-    state.luckState = 'pausing'; // block re-tap during feedback
+    state.luckState = 'pausing';
     cancelAnimationFrame(state.luckAnimId);
     state.luckAnimId = null;
 
     const targetW = getLuckTargetWidth();
-    const targetLeft = (100 - targetW) / 2;
-    const targetRight = targetLeft + targetW;
-    const hit = state.luckNeedlePos >= targetLeft && state.luckNeedlePos <= targetRight;
+    const distFromCenter = Math.abs(state.luckNeedlePos - 50);
+    const inTarget  = distFromCenter <= targetW / 2;
+    const inGreat   = distFromCenter <= targetW / 4;
+    const inPerfect = distFromCenter <= targetW / 8;
 
-    // Score based on how close to center (100 = perfect)
-    const center = 50;
-    const distFromCenter = Math.abs(state.luckNeedlePos - center);
-    const maxDist = targetW / 2;
-    const hitScore = hit ? Math.round(100 * (1 - distFromCenter / (center))) : 0;
+    const levelMult = getLuckLevelMult();
+    const comboMult = getLuckComboMult();
+    const luckZoneNode = document.getElementById('luck-zone');
 
-    if (hit) {
-        state.luckScore += hitScore;
+    let tier, basePoints, color, hintCls, needleCls, hintText;
+    if (inPerfect)     { tier = 'perfect'; basePoints = 100; color = '#2ecc71'; hintCls = 'hint-perfect'; needleCls = 'needle-perfect'; hintText = 'MÜKEMMEL!'; }
+    else if (inGreat)  { tier = 'great';   basePoints = 60;  color = '#48dbfb'; hintCls = 'hint-great';   needleCls = 'needle-great';   hintText = 'HARİKA!'; }
+    else if (inTarget) { tier = 'good';    basePoints = 30;  color = '#f0c040'; hintCls = 'hint-good';    needleCls = 'needle-good';    hintText = 'İYİ'; }
+    else               { tier = 'miss';    basePoints = 0;   color = '#e74c3c'; hintCls = 'hint-miss';    needleCls = 'needle-miss';    hintText = 'KAÇTI!'; }
+
+    setNeedleClass(needleCls);
+    setLuckHintClass(hintCls);
+    luckTapHint.textContent = hintText;
+
+    if (tier !== 'miss') {
+        // Hit path
+        const gained = Math.round(basePoints * levelMult * comboMult);
+        state.luckScore += gained;
+        state.luckCombo++;
+        if (state.luckCombo > state.luckMaxCombo) state.luckMaxCombo = state.luckCombo;
+        if (tier === 'perfect') state.luckPerfects++;
+        else if (tier === 'great') state.luckGreats++;
+        else state.luckGoods++;
+
+        // Bonus life every 10 perfects (cap at max)
+        let bonusLife = false;
+        if (tier === 'perfect' && state.luckPerfects % 10 === 0 && state.luckLives < state.luckLivesMax) {
+            state.luckLives++;
+            bonusLife = true;
+            updateLuckLives();
+        }
+
         luckScoreEl.textContent = state.luckScore;
-        luckNeedle.style.background = '#2ecc71';
-        luckTapHint.textContent = `+${hitScore}`;
-        luckTapHint.style.color = '#2ecc71';
+        luckZoneNode.classList.add(`luck-flash-${tier}`);
+        spawnLuckParticles(color, tier === 'perfect' ? 16 : tier === 'great' ? 10 : 6);
+
+        // Combo popup: only show when combo gives extra (>=2 combo or +life)
+        if (bonusLife) {
+            showLuckCombo('+1 CAN!', '#2ecc71');
+        } else if (state.luckCombo >= 2 && (state.luckCombo === 2 || state.luckCombo % 5 === 0)) {
+            showLuckCombo(`COMBO x${comboMult.toFixed(1)}`, color);
+        } else if (tier === 'perfect') {
+            showLuckCombo(`+${gained}`, color);
+        }
+
         state.luckLevel++;
         luckLevelEl.textContent = state.luckLevel;
+        updateLuckCombo();
         renderLuckBar();
+        playClickSound();
+
         setTimeout(() => {
-            luckNeedle.style.background = '#f0c040';
+            luckZoneNode.classList.remove(`luck-flash-${tier}`);
+            setNeedleClass(null);
+            setLuckHintClass(null);
             luckTapHint.textContent = 'DOKUN!';
-            luckTapHint.style.color = '#e8e8e8';
             state.luckNeedlePos = Math.random() * 100;
             state.luckNeedleDir = Math.random() > 0.5 ? 1 : -1;
             _luckLastTime = 0;
             state.luckState = 'running';
             state.luckAnimId = requestAnimationFrame(animateLuck);
-        }, 120);
+        }, 130);
     } else {
+        // Miss path
+        state.luckMisses++;
+        state.luckCombo = 0;
         state.luckLives--;
         updateLuckLives();
-        luckNeedle.style.background = '#e74c3c';
-        luckTapHint.textContent = 'KAÇIRDIN!';
-        luckTapHint.style.color = '#e74c3c';
+        updateLuckCombo();
+        spawnLuckParticles(color, 8);
+        luckZoneNode.classList.add('luck-shake');
+        setTimeout(() => luckZoneNode.classList.remove('luck-shake'), 360);
+
         if (state.luckLives <= 0) {
-            setTimeout(() => endLuck(), 200);
+            setTimeout(() => endLuck(), 350);
         } else {
             setTimeout(() => {
-                luckNeedle.style.background = '#f0c040';
+                setNeedleClass(null);
+                setLuckHintClass(null);
                 luckTapHint.textContent = 'DOKUN!';
-                luckTapHint.style.color = '#e8e8e8';
                 state.luckNeedlePos = Math.random() * 100;
                 state.luckNeedleDir = Math.random() > 0.5 ? 1 : -1;
                 _luckLastTime = 0;
                 state.luckState = 'running';
                 state.luckAnimId = requestAnimationFrame(animateLuck);
-            }, 200);
+            }, 280);
         }
     }
 }
@@ -2378,17 +2489,24 @@ function startLuck() {
     state.luckState = 'running';
     state.luckLevel = 1;
     state.luckScore = 0;
-    state.luckLives = 3;
-    state.luckNeedlePos = 0;
-    state.luckNeedleDir = 1;
+    state.luckLives = state.luckLivesStart;
+    state.luckCombo = 0;
+    state.luckMaxCombo = 0;
+    state.luckPerfects = 0;
+    state.luckGreats = 0;
+    state.luckGoods = 0;
+    state.luckMisses = 0;
+    state.luckNeedlePos = Math.random() * 100;
+    state.luckNeedleDir = Math.random() > 0.5 ? 1 : -1;
     luckLevelEl.textContent = '1';
     luckScoreEl.textContent = '0';
     updateLuckLives();
+    updateLuckCombo();
     luckMessage.style.display = 'none';
     luckBarWrap.style.display = '';
-    luckNeedle.style.background = '#f0c040';
+    setNeedleClass(null);
+    setLuckHintClass(null);
     luckTapHint.textContent = 'DOKUN!';
-    luckTapHint.style.color = '#e8e8e8';
     renderLuckBar();
     _luckLastTime = 0;
     state.luckAnimId = requestAnimationFrame(animateLuck);
@@ -2399,7 +2517,24 @@ function endLuck() {
     state.luckState = 'ended';
     luckBarWrap.style.display = 'none';
     luckMessage.style.display = '';
-    luckMessage.innerHTML = `<span class="game-result-big">${state.luckScore}</span><span class="game-result-label">Puan · Tekrar için tıkla</span>`;
+    const hits = state.luckPerfects + state.luckGreats + state.luckGoods;
+    const totalTaps = hits + state.luckMisses;
+    const acc = totalTaps > 0 ? Math.round((hits / totalTaps) * 100) : 0;
+    luckMessage.innerHTML = `
+        <span class="game-result-big">${state.luckScore}</span>
+        <span class="game-result-label">Puan · Seviye ${state.luckLevel}</span>
+        <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;justify-content:center;font-size:0.8rem;color:#c0c8d0">
+            <span style="color:#2ecc71">★ ${state.luckPerfects} perfect</span>
+            <span style="color:#48dbfb">${state.luckGreats} harika</span>
+            <span style="color:#f0c040">${state.luckGoods} iyi</span>
+            <span style="color:#e74c3c">${state.luckMisses} ıska</span>
+        </div>
+        <div style="display:flex;gap:14px;margin-top:4px;flex-wrap:wrap;justify-content:center;font-size:0.8rem;color:#7a8a9a">
+            <span>En yüksek combo: <b style="color:#e8e8e8">x${(1 + state.luckMaxCombo * 0.1 > 3 ? 3 : (1 + state.luckMaxCombo * 0.1)).toFixed(1)}</b></span>
+            <span>İsabet: <b style="color:#e8e8e8">${acc}%</b></span>
+        </div>
+        <span style="color:#7a8a9a;font-size:0.8rem;margin-top:8px">Tekrar için tıkla</span>
+    `;
     state.lastLuckScore = state.luckScore;
     statLuckLast.textContent = state.luckScore;
     if (state.luckScore > state.luckBest) {
@@ -2416,13 +2551,22 @@ function resetLuck() {
     state.luckState = 'idle';
     state.luckLevel = 1;
     state.luckScore = 0;
-    state.luckLives = 3;
+    state.luckLives = state.luckLivesStart;
+    state.luckCombo = 0;
+    state.luckMaxCombo = 0;
+    state.luckPerfects = 0;
+    state.luckGreats = 0;
+    state.luckGoods = 0;
+    state.luckMisses = 0;
     state.luckNeedlePos = 0;
     state.luckNeedleDir = 1;
     state.luckAnimId = null;
     luckLevelEl.textContent = '1';
     luckScoreEl.textContent = '0';
     updateLuckLives();
+    updateLuckCombo();
+    setNeedleClass(null);
+    setLuckHintClass(null);
     luckBarWrap.style.display = 'none';
     luckMessage.style.display = '';
     luckMessage.innerHTML = 'Çubuğu ortada durdur!<br><span style="font-size:0.85rem;color:#f0c040">Başlamak için tıkla</span>';

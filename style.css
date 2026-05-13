@@ -2846,43 +2846,119 @@ body[data-theme="ocean"] #timer-bar.timer-warning { background: linear-gradient(
     padding: 24px 16px; display: flex; flex-direction: column;
     align-items: center; gap: 20px; min-height: 200px; justify-content: center;
     cursor: pointer;
+    transition: transform 0.05s, background 0.2s;
+}
+#luck-zone.luck-shake { animation: luck-shake 0.35s; }
+#luck-zone.luck-flash-perfect { background: rgba(46,204,113,0.15); }
+#luck-zone.luck-flash-great { background: rgba(72,219,251,0.12); }
+#luck-zone.luck-flash-good { background: rgba(240,192,64,0.10); }
+@keyframes luck-shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(7px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(3px); }
 }
 #luck-message {
     font-size: 0.95rem; color: #7a8a9a; text-align: center; line-height: 1.8;
     display: flex; flex-direction: column; align-items: center; gap: 4px;
 }
-#luck-bar-wrap { width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+#luck-bar-wrap {
+    width: 100%; max-width: 560px; display: flex; flex-direction: column;
+    align-items: center; gap: 14px; position: relative;
+}
 #luck-bar-track {
-    width: 100%; height: 56px; background: rgba(255,255,255,0.07);
-    border-radius: 14px; position: relative; overflow: visible;
-    border: 1px solid rgba(255,255,255,0.1);
+    width: 100%; height: 64px; background: rgba(255,255,255,0.07);
+    border-radius: 16px; position: relative; overflow: visible;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: inset 0 2px 12px rgba(0,0,0,0.25);
 }
 #luck-target-zone {
     position: absolute; top: 0; height: 100%; border-radius: 14px;
-    border: 2px solid #2ecc71; transition: left 0.3s, width 0.3s, border-color 0.3s;
+    border: 2px solid #2ecc71;
+    background: rgba(46,204,113,0.10);
+    transition: left 0.3s, width 0.3s, border-color 0.3s, background 0.3s;
+    pointer-events: none;
+}
+#luck-great-zone {
+    position: absolute; top: 0; height: 100%; border-radius: 12px;
+    background: rgba(72,219,251,0.18);
+    border: 1px dashed rgba(72,219,251,0.5);
+    transition: left 0.3s, width 0.3s;
+    pointer-events: none;
+}
+#luck-perfect-zone {
+    position: absolute; top: 0; height: 100%; border-radius: 10px;
+    background: linear-gradient(180deg, rgba(240,192,64,0.5), rgba(240,192,64,0.25));
+    box-shadow: 0 0 14px rgba(240,192,64,0.5), inset 0 0 8px rgba(240,192,64,0.4);
+    transition: left 0.3s, width 0.3s;
+    pointer-events: none;
+}
+#luck-center-mark {
+    position: absolute; top: -6px; left: 50%; width: 2px; height: calc(100% + 12px);
+    background: rgba(255,255,255,0.7);
+    transform: translateX(-50%);
+    pointer-events: none;
+    box-shadow: 0 0 4px rgba(255,255,255,0.5);
 }
 #luck-needle {
-    position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-    background: #f0c040; border-radius: 2px;
+    position: absolute; top: -4px; left: 0; width: 6px; height: calc(100% + 8px);
+    background: linear-gradient(180deg, #fff, #f0c040);
+    border-radius: 3px;
     will-change: transform;
-    box-shadow: 0 0 8px rgba(240,192,64,0.6);
+    box-shadow: 0 0 12px rgba(240,192,64,0.8), 0 0 24px rgba(240,192,64,0.4);
+    transform: translateX(-3px);
+}
+#luck-needle.needle-perfect {
+    background: linear-gradient(180deg, #fff, #2ecc71);
+    box-shadow: 0 0 20px rgba(46,204,113,1), 0 0 40px rgba(46,204,113,0.6);
+}
+#luck-needle.needle-great {
+    background: linear-gradient(180deg, #fff, #48dbfb);
+    box-shadow: 0 0 16px rgba(72,219,251,0.9);
+}
+#luck-needle.needle-good {
+    background: linear-gradient(180deg, #fff, #f0c040);
+    box-shadow: 0 0 14px rgba(240,192,64,0.8);
+}
+#luck-needle.needle-miss {
+    background: linear-gradient(180deg, #fff, #e74c3c);
+    box-shadow: 0 0 18px rgba(231,76,60,0.9);
 }
 #luck-tap-hint {
-    font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: #e8e8e8;
+    font-family: 'Fredoka One', cursive; font-size: 1.2rem;
     letter-spacing: 1px;
+    transition: color 0.15s, transform 0.15s;
 }
-#luck-zone-indicator { font-size: 0.8rem; color: #7a8a9a; text-align: center; }
+#luck-tap-hint.hint-perfect { color: #2ecc71; transform: scale(1.3); }
+#luck-tap-hint.hint-great { color: #48dbfb; transform: scale(1.15); }
+#luck-tap-hint.hint-good { color: #f0c040; }
+#luck-tap-hint.hint-miss { color: #e74c3c; transform: scale(0.9); }
+#luck-particles { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.luck-particle {
+    position: absolute; width: 8px; height: 8px; border-radius: 50%;
+    pointer-events: none;
+    animation: luck-particle-fly 0.6s ease-out forwards;
+}
+@keyframes luck-particle-fly {
+    0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(0.3); opacity: 0; }
+}
+#luck-combo-popup {
+    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+    font-family: 'Fredoka One', cursive; font-size: 1.4rem;
+    pointer-events: none; opacity: 0;
+    text-shadow: 0 0 10px currentColor;
+}
+#luck-combo-popup.combo-show {
+    animation: luck-combo-pop 0.6s ease-out;
+}
+@keyframes luck-combo-pop {
+    0%   { opacity: 0; transform: translate(-50%, 10px) scale(0.7); }
+    30%  { opacity: 1; transform: translate(-50%, -20px) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -50px) scale(1); }
+}
 #luck-stats { display: flex; gap: 10px; width: 100%; justify-content: center; }
-.luck-zone-mark {
-    position: absolute; top: 0; width: 2px; height: 100%;
-    background: rgba(255,255,255,0.18); transform: translateX(-50%); pointer-events: none;
-}
-.luck-zone-label {
-    position: absolute; top: calc(100% + 4px);
-    transform: translateX(-50%);
-    font-family: 'Fredoka One', cursive; font-size: 0.65rem;
-    color: rgba(255,255,255,0.35); pointer-events: none; white-space: nowrap;
-}
 
 /* ========== PANIC MODE ========== */
 #panic-section { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px; }
