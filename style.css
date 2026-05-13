@@ -31,52 +31,65 @@ body {
 
 /* Header */
 #header {
-    text-align: center;
     width: 100%;
-    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
     min-height: 50px;
 }
 
 #header h1 {
     font-family: 'Fredoka One', cursive;
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: #e8e8e8;
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+    order: 2;
+    margin: 0;
+}
+
+#kbd-hint {
+    order: 4;
+    flex-basis: 100%;
+    text-align: center;
 }
 
 /* Header corner button groups */
 #header-btns-left {
-    position: absolute;
-    top: 0;
-    left: 0;
     display: flex;
     gap: 6px;
-    z-index: 10;
+    order: 1;
+    flex-shrink: 0;
 }
 
 #header-btns-right {
-    position: absolute;
-    top: 0;
-    right: 0;
     display: flex;
     gap: 6px;
-    z-index: 10;
+    order: 3;
+    flex-shrink: 0;
 }
 
 #mute-btn, #theme-btn, #changelog-btn, #admin-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    height: 32px;
+    min-width: 44px;
+    padding: 0 10px;
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.04);
     color: #e8e8e8;
-    font-size: 1.1rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
     cursor: pointer;
     transition: all 0.2s;
-    padding: 0;
     line-height: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    white-space: nowrap;
 }
 
 #mute-btn:hover, #theme-btn:hover {
@@ -579,13 +592,17 @@ body {
 }
 
 #change-name-btn {
-    font-size: 1.1rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #f0c040;
     background: rgba(240, 192, 64, 0.08);
     border: 2px solid rgba(240, 192, 64, 0.3);
     border-radius: 10px;
-    padding: 6px 10px;
+    padding: 8px 12px;
     cursor: pointer;
     transition: border-color 0.2s ease;
+    white-space: nowrap;
 }
 
 #change-name-btn:hover {
@@ -1587,8 +1604,8 @@ body {
     }
 
     #change-name-btn {
-        padding: 8px 12px;
-        font-size: 1.1rem;
+        padding: 8px 10px;
+        font-size: 0.75rem;
     }
 
     /* Timer text bigger */
@@ -2212,6 +2229,10 @@ body {
 
 .profile-record-icon {
     font-size: 1.4rem;
+}
+.profile-record-icon:empty { display: none; }
+.profile-record:has(.profile-record-icon:empty) {
+    grid-template-columns: 1fr auto auto;
 }
 
 .profile-record-name {
