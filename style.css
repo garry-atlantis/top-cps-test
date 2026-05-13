@@ -1245,6 +1245,21 @@ body {
     padding: 40px 0;
     font-weight: 600;
 }
+.lb-skeleton-row {
+    height: 56px;
+    margin: 8px 0;
+    border-radius: 10px;
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0.03) 0%,
+        rgba(255,255,255,0.08) 50%,
+        rgba(255,255,255,0.03) 100%);
+    background-size: 200% 100%;
+    animation: lb-shimmer 1.2s ease-in-out infinite;
+}
+@keyframes lb-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
 
 .lb-loading::after {
     content: '';

@@ -2110,21 +2110,67 @@ function isJsonBinConfigured() {
 }
 
 let lbCacheTime = 0;
-const LB_CACHE_TTL = 30000;
+const LB_CACHE_TTL = 60000; // 60s — return cached without refetching
+let _lbInflight = null; // dedupe concurrent fetches
+
+async function _fetchLeaderboardNetwork() {
+    if (_lbInflight) return _lbInflight;
+    _lbInflight = (async () => {
+        try {
+            const res = await fetch(`${JSONBIN_CONFIG.BASE_URL}/b/${JSONBIN_CONFIG.BIN_ID}/latest`, { headers: { 'X-Master-Key': JSONBIN_CONFIG.API_KEY } });
+            if (!res.ok) throw new Error('API error');
+            const data = await res.json();
+            state.leaderboardData = data.record.scores || [];
+            lbCacheTime = Date.now();
+            localStorage.setItem('leaderboardCache', JSON.stringify(state.leaderboardData));
+            return state.leaderboardData;
+        } catch (err) {
+            console.error('Leaderboard fetch error:', err);
+            return getLocalLeaderboard();
+        } finally {
+            _lbInflight = null;
+        }
+    })();
+    return _lbInflight;
+}
 
 async function fetchLeaderboard(forceRefresh = false) {
     const now = Date.now();
     if (!forceRefresh && state.leaderboardData && (now - lbCacheTime) < LB_CACHE_TTL) return state.leaderboardData;
     if (!isJsonBinConfigured()) return getLocalLeaderboard();
-    try {
-        const res = await fetch(`${JSONBIN_CONFIG.BASE_URL}/b/${JSONBIN_CONFIG.BIN_ID}/latest`, { headers: { 'X-Master-Key': JSONBIN_CONFIG.API_KEY } });
-        if (!res.ok) throw new Error('API error');
-        const data = await res.json();
-        state.leaderboardData = data.record.scores || [];
-        lbCacheTime = now;
-        localStorage.setItem('leaderboardCache', JSON.stringify(state.leaderboardData));
+    return _fetchLeaderboardNetwork();
+}
+
+// Returns cached data immediately (if any) and kicks off a background refresh.
+// Caller passes a callback that's invoked once fresh data is in.
+function fetchLeaderboardSWR(onFresh) {
+    // 1. Try in-memory cache first
+    if (state.leaderboardData && state.leaderboardData.length) {
+        // Trigger background refresh if stale
+        if (Date.now() - lbCacheTime >= LB_CACHE_TTL && isJsonBinConfigured()) {
+            _fetchLeaderboardNetwork().then(d => { if (onFresh) onFresh(d); });
+        }
         return state.leaderboardData;
-    } catch (err) { console.error('Leaderboard fetch error:', err); return getLocalLeaderboard(); }
+    }
+    // 2. Try localStorage cache (returning users see leaderboard instantly)
+    const local = getLocalLeaderboard();
+    if (local && local.length) {
+        if (isJsonBinConfigured()) {
+            _fetchLeaderboardNetwork().then(d => { if (onFresh) onFresh(d); });
+        }
+        return local;
+    }
+    // 3. No cache at all (first-time visitor): trigger fetch, return empty
+    if (isJsonBinConfigured()) {
+        _fetchLeaderboardNetwork().then(d => { if (onFresh) onFresh(d); });
+    }
+    return [];
+}
+
+function renderLbSkeleton(rows = 6) {
+    let html = '';
+    for (let i = 0; i < rows; i++) html += '<div class="lb-skeleton-row"></div>';
+    leaderboardList.innerHTML = html;
 }
 
 function getLocalLeaderboard() {
@@ -2334,12 +2380,20 @@ function escapeHtml(text) { const div = document.createElement('div'); div.textC
 // ====== LEADERBOARD UI ======
 let lbRefreshInterval = null;
 
-leaderboardBtn.addEventListener('click', async () => {
+leaderboardBtn.addEventListener('click', () => {
     leaderboardOverlay.classList.add('open');
-    if (state.leaderboardData && state.leaderboardData.length > 0) renderLeaderboard(state.leaderboardData, state.leaderboardTab);
-    else leaderboardList.innerHTML = '<div class="lb-loading">Yükleniyor...</div>';
-    const data = await fetchLeaderboard(true);
-    renderLeaderboard(data, state.leaderboardTab);
+    // Stale-while-revalidate: render cached/local data instantly,
+    // refresh in background, re-render when fresh data arrives.
+    const instant = fetchLeaderboardSWR((fresh) => {
+        if (leaderboardOverlay.classList.contains('open')) {
+            renderLeaderboard(fresh, state.leaderboardTab);
+        }
+    });
+    if (instant && instant.length > 0) {
+        renderLeaderboard(instant, state.leaderboardTab);
+    } else {
+        renderLbSkeleton();
+    }
     clearInterval(lbRefreshInterval);
     lbRefreshInterval = setInterval(async () => {
         if (!leaderboardOverlay.classList.contains('open')) { clearInterval(lbRefreshInterval); return; }
